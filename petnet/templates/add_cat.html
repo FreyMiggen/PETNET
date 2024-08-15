@@ -1,0 +1,139 @@
+{% extends 'base_test.html' %}
+
+{% load static %}
+
+{% block title %} Add Cat {% endblock %}
+
+{% block content %}
+
+<div class="columns is-mobile has-text-centered">
+  <div class="column is-half is-offset-one-quarter">
+
+    <div class="card">
+    <div class="card-content">
+
+    <form method="post" action="" enctype="multipart/form-data" role="form">
+    {% csrf_token %}
+    <h3 class="title is-1">Add Cat</h3>
+
+            <!-- <div class="field">
+              <p class="control has-icons-left">
+              <label class="label is-medium"></label>
+                {{ form.picture }}
+                <span class="icon is-small is-left">
+            <i class="fas fa-lock"></i>
+          </span>
+        </p>
+          </div> -->
+
+
+          <div class="field">
+            {{ form.picture.errors }}
+            <label class="label is-medium">Chọn ảnh đại diện:</label>
+            <div class="file has-name is-fullwidth">
+              <label class="file-label">
+                <input class="file-input" type="file" name="{{ form.picture.name }}" id="{{ form.picture.auto_id }}" accept="image/*">
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i class="fa-solid fa-image"></i>
+                  </span>
+                  <span class="file-label">
+                    Choose an image...
+                  </span>
+                </span>
+                <span class="file-name">
+                  No file chosen
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div id="image-preview" class="mt-4" style="display: none;">
+            <!-- <h4 class="title is-4">New Image Preview</h4> -->
+            <figure class="image is-4by3">
+              <img id="preview-image" src="" alt="Preview" class="image is-96x96 is-rounded">
+            </figure>
+          </div>
+
+            <div class="field">
+              <p class="control has-icons-left">
+              <label class="label is-medium">Tên mèo:</label>
+                {{ form.name }}
+                <span class="icon is-small is-left">
+            <i class="fa-solid fa-cat"></i>
+          </span>
+        </p>
+          </div>
+
+            <div class="field">
+              <p class="control has-icons-left">
+              <label class="label is-medium">Miêu tả:</label>
+                {{ form.description }}
+                <span class="icon is-small is-left">
+            <i class="fa-solid fa-keyboard"></i>
+          </span>
+        </p>
+          </div>
+        </div>
+        
+        <div class="field">
+          <p class="control has-icons-left">
+          <label class="label is-medium">In Search?</label>
+            {{ form.in_search }}
+            <span class="icon is-small is-left">
+        <i class="fa-solid fa-search"></i>
+      </span>
+    </p>
+      </div>
+
+
+      
+      <div class="field">
+        <p class="control has-icons-left">
+        <label class="label is-medium">Chế độ xem:</label>
+          {{ form.privacy }}
+          <span class="icon is-small is-left">
+      <i class="fas fa-lock"></i>
+    </span>
+  </p>
+    </div>
+
+      <div class="field">
+      <p class="control">
+        <button type="submit" name="action" class="button is-success">
+          Create
+        </button>
+      </p>
+    </div>
+
+
+      </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.querySelector('.file-input');
+    const fileName = document.querySelector('.file-name');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
+  
+    fileInput.addEventListener('change', (event) => {
+      if (event.target.files.length > 0) {
+        const file = event.target.files[0];
+        fileName.textContent = file.name;
+        
+        // Create a preview of the new image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImage.src = e.target.result;
+          imagePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        fileName.textContent = 'No file chosen';
+        imagePreview.style.display = 'none';
+      }
+    });
+  });
+  </script>
+{% endblock %}

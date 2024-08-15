@@ -1,0 +1,192 @@
+
+{% load static %}
+{% load humanize %}
+
+{% block styles %}
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.comparison-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.instagram-post {
+    background-color: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 3px;
+    margin-bottom: 60px;
+    max-width: 600px;
+    width: 100%;
+}
+
+.slideshow-container {
+    position: relative;
+    width: 100%;
+}
+
+.slide {
+    display: none;
+}
+
+.slide img {
+    width: 100%;
+    height: auto;
+}
+
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    padding: 16px;
+    margin-top: -22px;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.6s ease;
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+    background-color: rgba(0,0,0,0.3);
+}
+
+.next {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+.prev:hover, .next:hover {
+    background-color: rgba(0,0,0,0.8);
+}
+
+.post-details {
+    padding: 16px;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.profile-picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.username-location {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    font-weight: 600;
+    color: #262626;
+    text-decoration: none;
+}
+
+.post-caption {
+    margin-bottom: 8px;
+}
+
+.post-likes {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.post-time {
+    font-size: 12px;
+    color: #8e8e8e;
+}
+
+@media (max-width: 768px) {
+    .comparison-container {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+<div class="instagram-post">
+    <div class="post-content">
+        <div class="slideshow-container">
+            {% for content in post.content.all %}
+            <div class="slide fade">
+                {% if content.file.name|slice:"-3:" == 'jpg' or content.file.name|slice:"-3:" == 'png' %}
+                    <img src="{{ content.file.url }}" alt="Post image">
+                {% else %}
+                    <!-- Handle other file types if necessary -->
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if post.content.count > 1 %}
+            <a class="prev" onclick="plusSlides(this, -1)">&#10094;</a>
+            <a class="next" onclick="plusSlides(this, 1)">&#10095;</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="post-details">
+        <div class="post-header">
+            <div class="user-info">
+                {% if post.user.profile.picture %}
+                    <img src="{{ post.user.profile.picture.url }}" class="profile-picture" alt="Profile picture">
+                {% else %}
+                    <img src="{% static 'img/default-thumbnail.jpg' %}" class="profile-picture" alt="Profile picture">
+                {% endif %}
+                <div class="username-location">
+                    <a href="{{ post.get_absolute_url }}" class="username">{{ post.user.get_short_name }}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="post-caption">
+            <span class="username">{{ post.user.get_short_name }}</span> {{ post.caption }}
+        </div>
+
+        <div class="post-likes">
+            {{ post.likes }} likes
+        </div>
+
+        <div class="post-time">
+            {{ post.posted|naturaltime }}
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    let slideshows = document.querySelectorAll('.slideshow-container');
+    slideshows.forEach(function(slideshow) {
+        let slides = slideshow.querySelectorAll('.slide');
+        if (slides.length > 0) {
+            showSlide(slides, 0);
+        }
+    });
+});
+
+function plusSlides(element, n) {
+    let slideshow = element.closest('.slideshow-container');
+    let slides = slideshow.querySelectorAll('.slide');
+    let currentIndex = Array.from(slides).findIndex(slide => slide.style.display === 'block');
+    let newIndex = (currentIndex + n + slides.length) % slides.length;
+    showSlide(slides, newIndex);
+}
+
+function showSlide(slides, index) {
+    slides.forEach(slide => slide.style.display = 'none');
+    slides[index].style.display = 'block';
+}
+</script>

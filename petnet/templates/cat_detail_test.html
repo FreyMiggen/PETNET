@@ -1,0 +1,87 @@
+{% extends "base_test.html" %}
+{% load static %}
+{% block styles %}
+<style>
+    body {
+        background-color: #fce4ec;
+       
+    }
+    .cute-card {
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .cute-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    .cute-image {
+        border-radius: 50%;
+        border: 5px solid #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .cute-title {
+        color: #f06292;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+    .cute-description {
+        color: #9c27b0;
+    }
+    .cute-footer-item {
+        background-color: #f8bbd0;
+        color: #ad1457;
+        border-radius: 15px;
+        margin: 5px;
+        transition: all 0.3s ease;
+    }
+    .cute-footer-item:hover {
+        background-color: #f06292;
+        color: #fff;
+        transform: scale(1.05);
+    }
+
+</style>
+{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+
+            <div class="column is-half">
+                <!-- Image -->
+                <figure class="image is-4by3 mb-5 ">
+                    {% if cat.picture.url %}
+                    <img src="{{ cat.picture.url }}" alt="Centered image" class="cute-image">
+                    {% else %}
+                    <img src="{% static 'img/cat_default_avatar.jpg' %}" alt="Placeholder">
+                    {% endif %}
+                </figure>
+
+                <!-- Card -->
+                <div class="card is-rounded">
+                    <header class="card-header">
+                        <p class="card-header-title">Card header</p>
+                        <button class="card-header-icon" aria-label="more options">
+                          <span class="icon">
+                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                          </span>
+                        </button>
+                      </header>
+                    <div class="card-content">
+                        <div class="content">
+                            <h2 class="title is-4 cute-title">{{ cat.name }}</h2>
+                            <p class="cute-description"> {{ cat.description }}</p>
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <a href="{% url 'authy:cat-image' cat.id 'face' %}" class="card-footer-item button is-small cute-footer-item">Face Image Storage</a>
+                        <a href="{% url 'authy:cat-album' cat.id %}" class="card-footer-item button is-small cute-footer-item">Album</a>
+                        <a href="{{ link3_url }}" class="card-footer-item button is-small cute-footer-item">Favorite Food</a>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

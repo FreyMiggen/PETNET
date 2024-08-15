@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid #dbdbdb;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+            border-bottom: 1px solid #dbdbdb;
+            padding-bottom: 10px;
+        }
+        .chat-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .chat-list-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #dbdbdb;
+        }
+
+
+        .chat-list-item.active-chat {
+            background-color: #e6f2ff; /* Light blue background */
+        }
+
+        .chat-list-item a {
+            text-decoration: none;
+            color: #333; /* Dark gray for normal text */
+        }
+
+        .chat-list-item a.active-link {
+            color: #0066cc; /* Bright blue for active chat */
+            font-weight: bold;
+        }
+        .chat-list-item:hover {
+            background-color: #f0f0f0;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #dbdbdb;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .message-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: #fafafa;
+        }
+        .message {
+            max-width: 60%;
+            margin-bottom: 10px;
+            padding: 12px 16px;
+            border-radius: 22px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message.sent {
+            align-self: flex-end;
+            background-color: #dcf8c6;
+        }
+        .message.received {
+            align-self: flex-start;
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+        }
+        .message-input {
+            padding: 15px;
+            border-top: 1px solid #dbdbdb;
+            display: flex;
+            align-items: center;
+        }
+        #chat-message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dbdbdb;
+            border-radius: 22px;
+            margin-right: 10px;
+            outline: none;
+        }
+        #chat-message-submit {
+            padding: 10px 20px;
+            background-color: #3897f0;
+            color: white;
+            border: none;
+            border-radius: 22px;
+            cursor: pointer;
+        }
+        #chat-message-submit:hover {
+            background-color: #2878c7;
+        }
+        .load-more {
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #0095f6;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <h2>Chats</h2>
+            <ul class="chat-list">
+                {% for user in other_users %}
+                <!-- Example chat list items -->
+                <li class="chat-list-item {% if user.id == user2.id %}active-chat{% endif %}">
+                    <a href="{% url 'chat:room' user.id %}" {% if user.id == user2.id %}class="active-link"{% endif %}>
+                        {{ user.get_short_name }}
+                        <span class="unread-count" data-user-id="{{ user.id }}">0</span>
+                    </a>
+                </li>
+                {% endfor %}
+                <!-- Add more chat partners here -->
+            </ul>
+        </div>
+        <div class="chat-area">
+            <div class="chat-header">
+                <a href = "{% url 'profile' user2.profile.slug %}">
+                    {{ user2.get_short_name }}
+                </a>
+            </div>
+            <div id="load-more" class="load-more">Load more messages</div>
+            <div class="message-list" id="chat-log">
+                
+                {% for message in messages %}
+                <div class="message {% if message.user_id == request.user.id %}sent{% else %}received{% endif %}">
+                    {{ message.content }}
+                </div>
+                {% endfor %}
+                
+            </div>
+            
+            <div class="message-input">
+                <input type="text" id="chat-message-input" placeholder="Message...">
+                <button id="chat-message-submit">Send</button>
+            </div>
+        </div>
+    </div>
+
+    {{ user2.id|json_script:"user2-id" }}
+    {{ request.user.id|json_script:"current-user-id" }}
+    {{ last_message_id|json_script:"last-message-id" }}
+
+    <script>
+
+
+        
+        const user2Id = JSON.parse(document.getElementById('user2-id').textContent);
+        const currentUserId = JSON.parse(document.getElementById('current-user-id').textContent);
+        let lastMessageId = JSON.parse(document.getElementById('last-message-id').textContent);
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const chatList = document.getElementById('chat-list');
+        const currentUserId = JSON.parse(document.getElementById('current-user-id').textContent);
+
+    //     function updateUnreadCounts() {
+    //         fetch(`/api/unread-counts/`)
+    //             .then(response => response.json())
+    //             .then(data => {
+    //                 for (const [userId, count] of Object.entries(data)) {
+    //                     const countElement = chatList.querySelector(`[data-user-id="${userId}"] .unread-count`);
+    //                     if (countElement) {
+    //                         countElement.textContent = count > 0 ? count : '';
+    //                     }
+    //                 }
+    //             })
+    //             .catch(error => console.error('Error fetching unread counts:', error));
+    //     }
+
+    // // Update unread counts immediately and every 30 seconds
+    //     updateUnreadCounts();
+    //     setInterval(updateUnreadCounts, 30000);
+
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + user2Id + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            appendMessage(data.message, data.user_id);
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+        
+
+            // Reset unread count when entering a chat room
+
+        function appendMessage(message, userId) {
+            const messageList = document.querySelector('#chat-log');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.classList.add('message');
+            if (userId === currentUserId) {
+                messageDiv.classList.add('sent');
+            } else {
+                messageDiv.classList.add('received');
+            }
+            messageList.insertBefore(messageDiv, messageList.firstChild);
+        }
+
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+
+        // Load more messages when clicking "Load more"
+        document.getElementById('load-more').onclick = function() {
+            console.log(`Last Message Id: ${lastMessageId}`);
+            loadMessages(lastMessageId);
+        };
+
+        function loadMessages(before_id = null) {
+            fetch(`/chat/room/messages/${user2Id}/?before_id=${before_id || ''}`)
+                .then(response => response.json())
+                .then(data => {
+                    const messages = data.messages.reverse();
+                    const chatLog = document.getElementById('chat-log');
+                    
+                    messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = msg.content;
+                        messageDiv.classList.add('message');
+                        messageDiv.classList.add(msg.user_id === currentUserId ? 'sent' : 'received');
+                        chatLog.appendChild(messageDiv);
+                        lastMessageId = msg.id;
+                    });
+                });
+        }
+
+        // Reset unread_count when user1 visit a chat_room
+        const chatLinks = chatList.querySelectorAll('a');
+        chatLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const userId = this.querySelector('.unread-count').dataset.userId;
+            this.querySelector('.unread-count').textContent = '';
+        });
+    });
+})
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+{% extends 'base_test.html' %}
+{% load static %}
+{% block content %}
+
+<div class="columns is-mobile has-text-centered">
+  <div class="column is-8 is-offset-2">
+    <div class="card">
+      <div class="card-content">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          {% if type == 'lost' %}
+            <h3 class="title is-1">Tạo Bài đăng Tìm mèo lạc</h3>
+          {% else %}
+            <h3 class="title is-1">Tạo Bài đăng Ghi nhận mèo lạc</h3>
+          {% endif %}
+
+          <div class="field">
+            <label class="label">Thêm (nhiều) ảnh khuôn mặt:</label>
+            <div class="file has-name is-fullwidth">
+              <label class="file-label">
+                <input class="file-input" type="file" name="{{ form.content.name }}" multiple accept="image/*">
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i class="fas fa-upload"></i>
+                  </span>
+                  <span class="file-label">
+                    Choose files...
+                  </span>
+                </span>
+                <span class="file-name">
+                  No file chosen
+                </span>
+              </label>
+            </div>
+            {% if form.content.errors %}
+              <p class="help is-danger">{{ form.content.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div id="face-preview" class="columns is-multiline mt-2"></div>
+
+          <div class="field">
+            <label class="label">Thêm (nhiều) ảnh toàn thân:</label>
+            <div class="file has-name is-fullwidth">
+              <label class="file-label">
+                <input class="file-input" type="file" name="{{ form.fullbody_img.name }}" multiple>
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i class="fas fa-upload"></i>
+                  </span>
+                  <span class="file-label">
+                    Choose files...
+                  </span>
+                </span>
+                <span class="file-name">
+                  No file chosen
+                </span>
+              </label>
+            </div>
+            {% if form.fullbody_img.errors %}
+              <p class="help is-danger">{{ form.fullbody_img.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div id="fullbody-preview" class="columns is-multiline mt-2"></div>
+
+          <div class="field">
+            <label class="label">Miêu tả:</label>
+            <div class="control">
+              {{ form.caption }}
+            </div>
+          </div>
+
+
+          {% if type == 'lost' %}
+            <div class="field">
+              <label class="label">Thời gian lạc:</label>
+              <div class="control">
+                {{ form.lost_time }}
+   
+              {% if form.lost_time.errors %}
+                <p class="help is-danger">{{ form.lost_time.errors }}</p>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="field">
+              <label class="label">Thời gian thấy:</label>
+              <div class="control">
+                {{ form.found_time }}
+              {% if form.found_time.errors %}
+                <p class="help is-danger">{{ form.found_time.errors }}</p>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <div class="field">
+            <label class="label">
+              {% if type == "lost" %}
+                Địa điểm lạc:
+              {% else %}
+                Địa điểm tìm thấy:
+              {% endif %}
+            </label>
+            <div class="control has-icons-left">
+              {{ form.geotag }}
+              <span class="icon is-small is-left">
+                <i class="fas fa-map-marker-alt"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="control">
+              <button type="submit" class="button is-primary">Create</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  function handleFileInput(input, previewId) {
+    const fileName = input.closest('.file').querySelector('.file-name');
+    const preview = document.getElementById(previewId);
+
+    input.addEventListener('change', (event) => {
+      if (event.target.files.length > 0) {
+        fileName.textContent = Array.from(event.target.files).map(file => file.name).join(', ');
+        
+        preview.innerHTML = '';
+        Array.from(event.target.files).forEach(file => {
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = document.createElement('img');
+              img.src = e.target.result;
+              img.classList.add('column', 'is-3');
+              img.style.objectFit = 'cover';
+              img.style.height = '100px';
+              preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      } else {
+        fileName.textContent = 'No file chosen';
+        preview.innerHTML = '';
+      }
+    });
+  }
+
+  handleFileInput(document.querySelector('input[name="{{ form.content.name }}"]'), 'face-preview');
+  handleFileInput(document.querySelector('input[name="{{ form.fullbody_img.name }}"]'), 'fullbody-preview');
+});
+</script>
+
+{% endblock %}

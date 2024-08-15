@@ -1,0 +1,245 @@
+{% extends 'base_test.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+    <div class="columns is-mobile is-centered">
+    <div class="column is-half">
+
+<!--FOR COMMENT -->
+{% for notification in notifications %}
+
+{% if notification.notification_type == 2 %}
+      <div class="notification">
+      <a href="{% url 'notifications:delete-notification' notification.id %}" class="delete"></a>
+
+      <article class="media">
+  <figure class="media-left">
+    <p class="image is-64x64">
+        {% if notification.sender.profile.picture %}
+            <img src="{{ notification.sender.profile.picture.url }}" alt="Placeholder image">
+          {% else %}
+            <img src="{% static 'img/avatar_placeholder.png' %}" alt="Placeholder image">
+        {% endif %}
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+        <strong>{{ notification.sender.profile.first_name }} {{ notification.sender.profile.last_name }}</strong>
+        <small><a href="{% url 'profile' notification.sender.profile.slug %}">@{{ notification.sender.get_short_name }}</a></small>  
+        <br>
+        Commented:
+      <p>{{ notification.text_preview }}</p>
+      <p><a href="{{ notification.post.get_absolute_url }}">back to post</a></p>
+        <strong><small>{{ notification.date|naturaltime }}</small></strong>
+    </div>
+  </div>
+
+  <div class="media-right">
+    <figure class="image is-128x128 is-4by3">
+      <img src="{{ notification.post.content.first.file.url }}">
+  </figure>
+  </div>
+</article>
+
+      </div>
+{% endif %}
+
+<!-- FOR FOLLOW -->
+{% if notification.notification_type == 3 %}
+      <div class="notification">
+      <a href="{% url 'notifications:delete-notification' notification.id %}" class="delete"></a>
+
+      <article class="media">
+  <figure class="media-left">
+    <p class="image is-64x64">
+          {% if notification.sender.profile.picture %}
+            <img src="{{ notification.sender.profile.picture.url }}" alt="Placeholder image">
+          {% else %}
+            <img src="{% static 'img/avatar_placeholder.png' %}" alt="Placeholder image">
+        {% endif %}
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+
+        <strong>{{ notification.sender.profile.first_name }} {{ notification.sender.profile.last_name }}</strong> 
+        <small><a href="{% url 'profile' notification.sender.profile.slug %}">@{{ notification.sender.get_short_name }}</a></small> 
+        <br>
+        <p><i class="material-icons">person_add</i> Followed you!</p>
+        <strong><small>{{ notification.date|naturaltime }}</small></strong>
+    </div>
+  </div>
+
+</article>
+
+      </div>
+{% endif %}
+
+
+<!-- FOR LIKE --->
+{% if notification.notification_type == 1 %}
+      <div class="notification">
+      <a href="{% url 'notifications:delete-notification' notification.id %}" class="delete"></a>
+
+      <article class="media">
+  <figure class="media-left">
+    <p class="image is-64x64">
+        {% if notification.sender.profile.picture %}
+            <img src="{{ notification.sender.profile.picture.url }}" alt="Placeholder image">
+          {% else %}
+            <img src="{% static 'img/avatar_placeholder.png' %}" alt="Placeholder image">
+        {% endif %}
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+        
+        <strong>{{ notification.sender.profile.first_name }} {{ notification.sender.profile.last_name }}</strong>
+         <small><a href="{% url 'profile' notification.sender.profile.slug %}">@{{ notification.sender.get_short_name }}</a></small> 
+        <br>
+        <p><i class="material-icons">thumb_up</i> Liked your post</p>
+        <p><a href="{{ notification.post.get_absolute_url }}">back to post</a></p>
+        <strong><small>{{ notification.date|naturaltime }}</small></strong>
+    </div>
+  </div>
+
+  <div class="media-right">
+    <figure class="image is-128x128 is-4by3">
+      <img src="{{ notification.post.content.first.file.url }}">
+  </figure>
+  </div>
+</article>
+
+      </div>
+{% endif %}
+
+
+<!--FOR SYSTEM EMBEDDING VECTOR CREATED-->
+{% if notification.notification_type == 4 %}
+
+      <div class="notification">
+
+      
+      <a href="{% url 'notifications:delete-notification' notification.id %}" class="delete"></a>
+
+      <article class="media">
+  <figure class="media-left">
+    <p class="image is-64x64">
+            <img src="{% static 'img/avatar.jpg' %}" class="image is-96x96" alt="Placeholder image">
+
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+        <strong>System</strong> <small>Vector đặc trưng</small> 
+        <br>
+        <p>Đã tạo vector đặc trưng cho Bài đăng Tìm mèo lạc</p>
+        
+ 
+        <p><a href="{% url 'post:lostpostdetails' notification.post.id %}">back to post</a></p>
+
+        <strong><small>{{ notification.date|naturaltime }}</small></strong>
+    </div>
+  </div>
+  <div class="media-right">
+    <figure class="image is-128x128 is-4by3">
+      <img src="{{ notification.post.content.first.file.url }}">
+  </figure>
+  </div>
+
+</article>
+
+      </div>
+
+      {% endif %}
+
+<!--- FOR SYSTEM : FOUND EMBEDDING VECTOR CREATED-->
+
+      {% if notification.notification_type == 5 %}
+
+      <div class="notification">
+
+      
+      <a href="{% url 'notifications:delete-notification' notification.id %}" class="delete"></a>
+
+      <article class="media">
+  <figure class="media-left">
+    <p class="image is-64x64">
+            <img src="{% static 'img/avatar.jpg' %}" class="image is-96x96" alt="Placeholder image">
+
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+        <strong>System</strong> <small>Vector đặc trưng</small> 
+        <br>
+        <p>Đã tạo vector đặc trưng cho Bài đăng ghi nhận mèo lạc!</p>
+ 
+        <p><a href="{{ notification.post.get_absolute_url }}">back to post</a></p>
+
+        <strong><small>{{ notification.date|naturaltime }}</small></strong>
+    </div>
+  </div>
+
+  <div class="media-right">
+    <figure class="image is-128x128 is-4by3">
+      <img src="{{ notification.post.content.first.file.url }}">
+  </figure>
+  </div>
+</article>
+
+      </div>
+
+      {% endif %}
+
+<!-- FOR SYSTEM: CAT EMBEDDING VECTOR CREATED-->
+      {% if notification.notification_type == 6 %}
+
+      <div class="notification">
+
+      
+      <a href="{% url 'notifications:delete-notification' notification.id %}" class="delete"></a>
+
+      <article class="media">
+  <figure class="media-left">
+    <p class="image is-64x64">
+            <img src="{% static 'img/avatar.jpg' %}" class="image is-96x96" alt="Placeholder image">
+
+    </p>
+  </figure>
+  <div class="media-content">
+    <div class="content">
+        <strong>System</strong> <small>Vector đặc trưng</small> 
+        <br>
+        <p>Embedding vector created successfully!</p>
+        
+ 
+        <p><a href="{% url 'authy:cat-image' notification.cat.id 'face' %}">back to cat</a></p>
+
+        <strong><small>{{ notification.date|naturaltime }}</small></strong>
+    </div>
+  </div>
+  <div class="media-right">
+    <figure class="image is-128x128 is-4by3">
+      <img src="{{ notification.cat.picture.url }}">
+  </figure>
+  </div>
+
+</article>
+
+      </div>
+
+{% endif %}
+
+{% endfor %}
+<!-- FOR LIKES --->
+
+
+
+    </div>
+    </div>
+
+
+{% endblock %}

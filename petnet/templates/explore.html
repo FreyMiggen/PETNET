@@ -1,0 +1,158 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+      {% block title %} Explore {% endblock %}
+  </title>
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+  </head>
+  <body>
+
+
+        <div class="columns">
+            <div class="column is-one-quarter">
+                <aside class="menu">
+                    <p class="menu-label">
+                        Explore Categories
+                    </p>
+                    <ul class="menu-list">
+                        <li><a href="?category=people" {% if category == 'people' %}class="is-active"{% endif %}>People</a></li>
+                        <li><a href="?category=post" {% if category == 'post' %}class="is-active"{% endif %}>Post</a></li>
+                        <li><a href="?category=lostpost" {% if category == 'lostpost' %}class="is-active"{% endif %}>Lost Post</a></li>
+                        <li><a href="?category=foundpost" {% if category == 'foundpost' %}class="is-active"{% endif %}>Found Post</a></li>
+                    </ul>
+                </aside>
+            </div>
+            <div class="column">
+                <form method="get" action="{% url 'explore' %}">
+                    <div class="field has-addons has-addons-centered">
+                        <div class="control">
+                            <input class="input" type="text" name="q" placeholder="Search..." value="{{ query }}">
+                        </div>
+                        <div class="control">
+                            <button type="submit" class="button is-info">
+                                <span class="icon">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="category" value="{{ category }}">
+                    {% if category != 'people' %}
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <input class="input" type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="control">
+                            <input class="input" type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="control">
+                            <button type="submit" class="button is-info">Filter by Date</button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+
+                <div class="content">
+                    {% if page_obj %}
+                        {% for item in page_obj %}
+                            <div class="box">
+                                {% if category == 'people' %}
+                                <div class="columns is-vcentered">
+                                    <div class="column is-narrow">
+                                        <figure class="image is-56x56">
+
+                                            <!-- <figure class="image is-5by3">
+                                                <a href="{{ post_item.get_absolute_url }}">
+                                                  <img src="{{ post_item.content.first.file.url }}" alt="Placeholder image">
+                                                </a>
+                                              </figure> -->
+                                            
+                                            <a href="{% url 'profile' item.slug %}">
+                                                {% if item.picture %}
+                                                <img src="{{ item.picture.url }}" style="width: 100px; height: 100px;" alt="Avatar image">
+                                                {% else %}
+                                                <img src="{% static 'img/avatar_placeholder.png' %}" style="width:100px; height: 100px ;" alt="Default post image">
+                                            {% endif %}
+                                            </a>
+
+                                        </figure>
+                                    </div>
+                                    <div class="column">
+                                        <p>
+                                            <strong>
+                                                <a href="{% url 'profile' item.user.profile.slug %}">
+                                                    {{ item.user.get_short_name }}
+                                                </a>
+                                            </strong>
+                                            <p>{{ item.first_name }} {{ item.last_name }}</p>
+                                        </p>
+                                        <p class="is-size-7">Active since: {{ item.created |date:"F d, Y" }}</p>
+                                    </div>
+                                </div>
+                                    
+                                    {% elif category == 'post' or category == 'lostpost' or category == 'foundpost' %}
+                                    <div class="columns is-vcentered">
+                                        <div class="column is-narrow">
+                                            <figure class="image is-56x56">
+
+                                                <!-- <figure class="image is-5by3">
+                                                    <a href="{{ post_item.get_absolute_url }}">
+                                                      <img src="{{ post_item.content.first.file.url }}" alt="Placeholder image">
+                                                    </a>
+                                                  </figure> -->
+                                                {% if item.content %}
+                                                <a href="{{ item.get_absolute_url}}">
+
+                                                    <img src="{{ item.content.first.file.url }}" style="width: 100px; height: 100px;" alt="Post image">
+                                                </a>
+                                                    {% else %}
+                                                    <img src="{% static 'img/default_post.png' %}" alt="Default post image">
+                                                {% endif %}
+                                            </figure>
+                                        </div>
+                                        <div class="column">
+                                            <p>
+                                                <strong>
+                                                    <a href="{% url 'profile' item.user.profile.slug %}">
+                                                        {{ item.user.get_short_name }}
+                                                    </a>
+                                                </strong>
+                                            </p>
+                                            <p>{{ item.caption|truncatechars:100 }}</p>
+                                            <p class="is-size-7">Posted on: {{ item.posted |date:"F d, Y" }}</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <nav class="pagination" role="navigation" aria-label="pagination">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ category }}" class="pagination-previous">Previous</a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ category }}" class="pagination-next">Next</a>
+                            {% endif %}
+                            <ul class="pagination-list">
+                                {% for num in page_obj.paginator.page_range %}
+                                    <li><a href="?page={{ num }}&q={{ query }}&category={{ category }}" class="pagination-link {% if num == page_obj.number %}is-current{% endif %}">{{ num }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </nav>
+                    {% else %}
+                        <p>No results found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+</body>
+</html>

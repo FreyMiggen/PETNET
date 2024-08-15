@@ -1,0 +1,400 @@
+{% extends 'base_test.html' %}
+{% load static %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns">
+            <div class="column is-half">
+                <div id="find-function" class="card">
+                    <div class="card-content">
+                        <div id="similar-task">
+                            <h2 class="title is-4">Chạy tìm kiếm ngay</h2>
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-primary is-fullwidth" id="runSimilarButton" data-post-id="{{ post_id }}">
+                                        <span class="icon">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <span>Tìm kiếm</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="similarResults" style="display: none;">
+                                <h3 class="title is-5">Kết quả tìm kiếm (độ trùng khớp giảm dần):</h3>
+                                <ol id="similarPostsList"></ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column is-half">
+                <div id="schedule-task" class="card">
+                    <div class="card-content">
+                        <h2 class="title is-4">Thông tin email nhận kết quả tìm kiếm:</h2>
+                        {% if email %}
+                        <div id="email-display" class="field">
+                            <label class="label">Email</label>
+                            <div class="control has-icons-left is-expanded">
+                                <input class="input" type="email" value="{{ email }}" readonly>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-info is-small" id="edit-email-btn">
+                                    <span class="icon">
+                                        <i class="fas fa-edit"></i>
+                                    </span>
+                                    <span>Edit Email</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="edit-email-form" class="field" style="display: none;">
+                            <label class="label">Edit Email</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="email" id="new-email" value="{{ email }}">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                            </div>
+                            <div class="field is-grouped mt-3">
+                                <div class="control">
+                                    <button class="button is-link" id="save-email-btn">Save</button>
+                                </div>
+                                <div class="control">
+                                    <button class="button is-link is-light" id="cancel-edit-btn">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="field">
+                            <div class="control">
+                                <label class="checkbox">
+                                    {% if checked %}
+                                    <input type="checkbox" id="schedule-checkbox" checked>
+                                    {% else %}
+                                    <input type="checkbox" id="schedule-checkbox">
+                                    {% endif %}
+                                    Xác nhận đặt lịch chạy 1 lần/ 1 giờ
+                                </label>
+                            </div>
+
+                            <div class="field is-grouped mt-3" id="save-cancel-button" style="display: none;">
+                                <div class="control">
+                                    <button class="button is-link" id="save-schedule-btn">Save</button>
+                                </div>
+                                <div class="control">
+                                    
+                                    <button class="button is-link is-light" id="cancel-schedule-btn">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% else %}
+                            <form id="email-form">
+                                {% csrf_token %}
+                                <div class="field">
+                                    <label class="label">Email</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="email" placeholder="Your email" required>
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="control">
+                                        <label class="checkbox">
+                                            <input type="checkbox">
+                                            Xác nhận đặt lịch chạy 1 lần/ 1 giờ
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="field is-grouped">
+                                    <div class="control">
+                                        <button type="submit" class="button is-link">Submit</button>
+                                    </div>
+                                    <div class="control">
+                                        <button type="reset" class="button is-link is-light">Cancel</button>
+                                    </div>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+      
+        <div class="column is-full mt-6">
+            <div class="card" id="find-result">
+                <div class="card-content">
+                    <h2 class="title is-4">Lịch sử kết quả tìm kiếm</h2>
+                    <div class="content">
+                        <h3 class="title is-6">Độ trùng khớp cao:</h3>
+                        <ul>
+                            {% for item in perfect_candidates %}
+
+    
+                            
+                            <li>
+                                <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
+                                <a href = "{{ item.url }}">Link so sánh</a><br>
+                                Điểm sai lệch: {{ item.match.score|floatformat:2 }}<br>
+                                Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
+
+                            </li>
+
+                            {% empty %}
+                            <h4>No perfect match!</h4>
+                            {% endfor %}
+
+
+                        </ul>
+
+                        <h3 class="title is-6">Độ trùng khớp thấp:</h3>
+                        <ul>
+                            {% for item in match_candidates %}
+
+                            <li>
+
+                                <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
+                                <a href = "{{ item.url }}">Link so sánh</a><br>
+                                Điểm sai lệch: {{ item.match.score|floatformat:2 }}<br>
+                                Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
+                         
+
+                            </li>
+
+                            {% empty %}
+                            <h4>Bạn chưa chạy tìm kiếm</h4>
+                            {% endfor %}
+
+
+                        </ul>
+
+
+                            <!-- More results can be added here -->
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{{ post_id|json_script:"lostpost-id" }}
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const runSimilarButton = document.getElementById('runSimilarButton');
+    const similarResults = document.getElementById('similarResults');
+    const similarPostsList = document.getElementById('similarPostsList');
+
+    if (runSimilarButton) {
+        runSimilarButton.addEventListener('click', function() {
+            const postId = this.getAttribute('data-post-id');
+            runSimilarButton.disabled = true;
+            runSimilarButton.textContent = 'Searching...';
+            
+            fetch(`/post/find-similar/${postId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    similarPostsList.innerHTML = '';
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+
+                        li.innerHTML= `
+                            <a href ="${item.url}">Link</a><br>
+                            Score: ${item.score}
+                            Posted: ${item.posted}<br>
+                            Username: ${item.username}<br>
+                        `;
+                        // const a = document.createElement('a');
+                        // a.href = post.url;
+                        // a.textContent = post.title || 'Similar Post'; // Use post title if available, otherwise use 'Similar Post'
+                        // a.target = '_blank'; // Open the link in a new tab
+                        // li.appendChild(a);
+                        similarPostsList.appendChild(li);
+                    });
+                    similarResults.style.display = 'block';
+                    runSimilarButton.disabled = false;
+                    runSimilarButton.textContent = 'Chạy tìm kiếm ngay';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    similarResults.innerHTML = '<p>An error occurred while searching for similar posts.</p>';
+                    similarResults.style.display = 'block';
+                    runSimilarButton.disabled = false;
+                    runSimilarButton.textContent = 'Run Similar Search';
+                });
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const lostPostId = JSON.parse(document.getElementById('lostpost-id').textContent);
+    const checkbox = document.getElementById('schedule-checkbox');
+    const initialStatus = checkbox.checked;
+
+    const saveCancelButtons = document.getElementById('save-cancel-button');
+
+    const saveScheduleBtn = document.getElementById('save-schedule-btn');
+    const cancelScheduleBtn = document.getElementById('cancel-schedule-btn');
+    checkbox.addEventListener('change', () => {
+        saveCancelButtons.style.display = 'block';
+    });
+
+    if (saveScheduleBtn){
+        saveScheduleBtn.addEventListener('click',()=>{
+                var check = "no";
+                if (checkbox.checked){
+                    check = "yes";
+                    
+                }
+            
+                fetch(`/post/update-schedule/${lostPostId}/`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ checked: check })
+                    .then(response=>response.json())
+                    .then(data=>{
+                        if (data.success){
+                            saveCancelButtons.style.display='block';
+
+                        }
+
+                    })
+                    .catch(error =>{
+                        console.log('Error',error);
+                        checkbox.checked = initialStatus;
+
+                    } )
+                    })
+
+            }
+
+        )
+    }
+
+
+    if (cancelScheduleBtn){
+        cancelScheduleBtn.addEventListener('click',()=>{
+            checkbox.checked = initialStatus;
+            saveCancelButtons.style.display = 'none';
+        })
+    }
+
+
+})
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const lostPostId = JSON.parse(document.getElementById('lostpost-id').textContent);
+    const emailDisplay = document.getElementById('email-display');
+    const editEmailForm = document.getElementById('edit-email-form');
+    const editEmailBtn = document.getElementById('edit-email-btn');
+    const saveEmailBtn = document.getElementById('save-email-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const newEmailInput = document.getElementById('new-email');
+    
+
+    if (editEmailBtn) {
+        editEmailBtn.addEventListener('click', () => {
+            emailDisplay.style.display = 'none';
+            editEmailBtn.style.display = 'none';
+            editEmailForm.style.display = 'block';
+        });
+    }
+
+    if (saveEmailBtn) {
+        saveEmailBtn.addEventListener('click', () => {
+        const newEmail = newEmailInput.value;
+
+
+               // Disable the save button and show loading state
+        saveEmailBtn.classList.add('is-loading');
+        saveEmailBtn.disabled = true;
+        console.log("Heyyyyy");
+
+        fetch(`/post/update-email/${lostPostId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ new_email: newEmail })
+        })
+        .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update was successful
+                    const displayInput = emailDisplay.querySelector('input');
+                    displayInput.value = newEmail;
+                    emailDisplay.style.display = 'block';
+                    editEmailBtn.style.display = 'block';
+                    editEmailForm.style.display = 'none';
+                    
+                    // Show success message
+                    showNotification('Email updated successfully!', 'is-success');
+                } else {
+                    // Server returned an error
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to update email. Please try again.', 'is-danger');
+            })
+            .finally(() => {
+                // Re-enable the save button and remove loading state
+                saveEmailBtn.classList.remove('is-loading');
+                saveEmailBtn.disabled = false;
+            });
+        });
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            emailDisplay.style.display = 'block';
+            editEmailBtn.style.display = 'block';
+            editEmailForm.style.display = 'none';
+        });
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+});
+
+		
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+{% endblock %}

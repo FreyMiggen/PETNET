@@ -1,0 +1,150 @@
+{% extends 'base_test.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<article class="media">
+
+  <div class="media-left">
+      <figure class="image is-256x256">
+        {% if profile.picture %}
+          <img class="is-rounded" src="{{ profile.picture.url }}">
+        {% else %}
+          <img class="is-rounded" src="{% static 'img/avatar_placeholder.png' %}">
+        {% endif %}
+      </figure>
+  </div>
+
+   <div class="media-content">
+
+    <div class="content">
+      <h1 style="font-weight: bold;" class="title is-1 is-spaced">{% if profile.first_name %}{{ profile.first_name }} {{ profile.last_name }} {% endif %}</h1>
+      <h2 class="subtitle is-3 ">@{{ profile.user }}</h2>
+
+    {% if user.is_authenticated and user != profile.user %}
+      <div class="media-right">
+        {% if follow_status == True %}
+          <a href="{% url 'follow' profile.user.id 0 %}" class="button is-danger">Unfollow</a>
+        {% else %}
+          <a href="{% url 'follow' profile.user.id 1 %}" class="button is-success">Follow</a>
+        {% endif  %}
+      </div>
+    {% endif %}
+
+    </div>
+
+
+     <nav class="level is-mobile">
+  <div class="level-item has-text-centered">
+    <div>
+      <p class="heading">Posts</p>
+      <p class="title">{{ posts_count }}</p>
+    </div>
+  </div>
+  <div class="level-item has-text-centered">
+    <div>
+      <p class="heading">Following</p>
+      <p class="title">{{ following_count }}</p>
+    </div>
+  </div>
+  <div class="level-item has-text-centered">
+    <div>
+      <p class="heading">Followers</p>
+      <p class="title">{{ followers_count }}</p>
+    </div>
+  </div>
+</nav>
+
+<p class="subtitle is-5">{% if profile.profile_info %}{{ profile.profile_info }}{% endif %}</p>
+
+{% if user.is_authenticated and user == profile.user %}
+  <a href="{% url 'authy:edit-profile' %}" class="button">Edit profile</a>
+  {% else %}
+  <a href="{% url 'chat:room' profile.user.id %}" class="button">Inbox</a>
+
+{% endif %}
+<a href="{% url 'authy:cat-list' %}" class="button">View Cats</a>
+
+ </div>
+
+</article>
+
+
+</div>
+</div>
+
+
+
+    </div>
+  </section>
+
+
+
+  <section class="section">
+    <div class="container">
+
+  <div class="tabs is-centered">
+  <ul>
+
+    <li class="{% if url_name == 'profile' %}is-active{% endif %}">
+      <a href="{% url 'profile' profile.slug %}"><i class="material-icons">dashboard</i>Posts</a>
+    </li>
+
+    <li class="{% if url_name == 'profile-lostpost' %}is-active{% endif %}">
+      <a href="{% url 'profile-lostpost' profile.slug %}"><i class="material-icons">search</i>Lost Posts</a>
+    </li>
+
+    <li class="{% if url_name == 'profile-foundpost' %}is-active{% endif %}">
+      <a href="{% url 'profile-foundpost' profile.slug %}"><i class="material-icons">save_alt</i>Found Posts</a>
+    </li>
+  </ul>
+</div>
+
+
+    <div class="columns is-mobile is-multiline is-centered">
+      
+    {% for post in posts %}
+      <div class="column is-one-quarter">
+        <div class="box">
+
+  <!-- {% if post.content.first.file.name|slice:"-3:" == 'jpg' or post.content.first.file.name|slice:"-3:" == 'png' or post.content.first.file.name|slice:"-4:" == 'jfif' %} -->
+    
+  
+  <figure class="image is-4by3">
+      <a href="{{ post.get_absolute_url }}">
+        <img src="{{ post.content.first.file.url }}" alt="Placeholder image">
+      </a>
+    </figure>
+  <!-- {% else %}
+    <a href="{{ post.get_absolute_url }}">
+      <video width="640" controls="controls" preload="metadata">
+        <source src="{{ post.content.first.file.url }}#t=0.5" type="video/mp4">        
+      </video>      
+    </a>
+  {% endif %} -->
+
+    </div>
+      </div>
+    {% empty %}
+      <br>
+      {% if user.is_authenticated and user == profile.user %}
+      <h3 class="title is-3">You do not have any post!</h3>
+      {% else %}
+      <h3 class="title is-3">This user has not added any post!</h3>
+      {% endif %}
+    {% endfor %}
+
+
+      </div>
+
+</div>
+</div>
+
+
+
+    </div>
+  </section>
+
+
+{% endblock %}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .post {
+            margin-bottom: 20px;
+        }
+        .post h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .post img {
+            max-width: 100%;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% for post in posts %}
+        <div class="post">
+            <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+            <a href="{{ post.get_absolute_url }}"><img src="{{ post.content.all.0.url }}" alt="Image 1"></a>
+            <a href="{{ post.get_absolute_url }}"><img src="{{ post.content.all.1.url }}" alt="Image 2"></a>
+        </div>
+        {% endfor %}
+        <div class="footer">
+            <p>&copy; 2024 Petnet. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!-- templates/edit_post.html -->
+{% extends 'base_test.html' %}  <!-- Assuming you have a base template -->
+
+{% block content %}
+
+<div class="columns is-mobile has-text-centered">
+    <div class="column is-8 is-offset-2">
+  
+      <div class="card">
+      <div class="card-content">
+
+<form method="post" enctype="multipart/form-data">
+    <h3 class="title is-1">Chỉnh sửa bài đăng:</h3>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    
+
+
+    <!-- <div class="field">
+      <p class="control has-icons-left">
+      <label class="label is-medium">Chế độ xem:</label>
+        {{ form.privacy }}
+        <span class="icon is-small is-left">
+    <i class="fas fa-lock"></i>
+  </span>
+</p>
+  </div> -->
+
+    
+
+
+
+<!-- 
+    <div class="field">
+        {{ form.cats.errors }}
+        <p class="control has-icons-left">
+        <label class="label is-medium" for="{{ form.cats.id_for_label }}">Mèo:</label>
+          {{ form.cats }}
+          <span class="icon is-small is-left">
+            <i class="fa-solid fa-cat"></i>
+    </span>
+  </p>
+    </div> -->
+
+
+    <div class="field">
+        {{ form.fullbody_new_content.errors }}
+        <label class="label is-medium">Thêm (nhiều) ảnh toàn thân mới:</label>
+        <div class="file has-name is-fullwidth">
+          <label class="file-label">
+            <input class="file-input" type="file" name="{{ form.fullbody_new_content.name }}" id="{{ form.new_content.auto_id }}" multiple>
+            <span class="file-cta">
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
+              <span class="file-label">
+                Choose files...
+              </span>
+            </span>
+            <span class="file-name">
+              No file chosen
+            </span>
+          </label>
+        </div>
+      </div>
+      <div id="fullbody-preview" class="columns is-multiline mt-2"></div>
+  
+      
+      <div class="field">
+        <label class="label is-medium">Ảnh toàn thân hiện tại:</label>
+        {{ form.fullbody_delete_content.errors }}
+        <div class="columns is-multiline">
+          {% for content in post.fullbody_img.all %}
+            <div class="column is-3">
+              <div class="card">
+                <div class="card-image">
+                  <figure class="image is-4by3">
+                    <img src="{{ content.file.url }}" alt="Post image" style="object-fit: cover;">
+                  </figure>
+                </div>
+                <div class="card-content">
+                  <label class="checkbox">
+                    <input type="checkbox" name="{{ form.fullbody_delete_content.name }}" value="{{ content.id }}">
+                    Delete
+                  </label>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    <div class="field">
+      {{ form.new_content.errors }}
+      <label class="label is-medium">Thêm (nhiều) ảnh khuôn mặt mới:</label>
+      <div class="file has-name is-fullwidth">
+        <label class="file-label">
+          <input class="file-input" type="file" name="{{ form.new_content.name }}" id="{{ form.new_content.auto_id }}" multiple>
+          <span class="file-cta">
+            <span class="file-icon">
+              <i class="fas fa-upload"></i>
+            </span>
+            <span class="file-label">
+              Choose files...
+            </span>
+          </span>
+          <span class="file-name">
+            No file chosen
+          </span>
+        </label>
+      </div>
+    </div>
+    <div id="face-preview" class="columns is-multiline mt-2"></div>
+
+    
+    <div class="field">
+      <label class="label is-medium">Ảnh khuôn mặt hiện tại:</label>
+      {{ form.delete_content.errors }}
+      <div class="columns is-multiline">
+        {% for content in post.content.all %}
+          <div class="column is-3">
+            <div class="card">
+              <div class="card-image">
+                <figure class="image is-4by3">
+                  <img src="{{ content.file.url }}" alt="Post image" style="object-fit: cover;">
+                </figure>
+              </div>
+              <div class="card-content">
+                <label class="checkbox">
+                  <input type="checkbox" name="{{ form.delete_content.name }}" value="{{ content.id }}">
+                  Delete
+                </label>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+      <div class="field">
+        {{ form.caption.errors }}
+        <label for="{{ form.caption.id_for_label }}" class="label is-medium">Miêu tả:</label>
+        {{ form.caption }}
+    </div>
+
+    <div class="field">
+      {{ form.lost_time.errors }}
+      <label for="{{ form.lost_time.id_for_label }}" class="label is-medium">Thời gian lạc:</label>
+      {{ form.lost_time }}
+  </div>
+  <div class="field">
+    {{ form.geotag.errors }}
+    <label for="{{ form.geotag.id_for_label }}" class="label is-medium">Địa điểm lạc:</label>
+    {{ form.geotag }}
+  </div>
+
+    <button type="submit" class="button is-primary">Update Post</button>
+</form>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+  function handleFileInput(input, previewId) {
+    const fileName = input.closest('.file').querySelector('.file-name');
+    const preview = document.getElementById(previewId);
+
+    input.addEventListener('change', (event) => {
+      if (event.target.files.length > 0) {
+        fileName.textContent = Array.from(event.target.files).map(file => file.name).join(', ');
+        
+        preview.innerHTML = '';
+        Array.from(event.target.files).forEach(file => {
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = document.createElement('img');
+              img.src = e.target.result;
+              img.classList.add('column', 'is-3');
+              img.style.objectFit = 'cover';
+              img.style.height = '100px';
+              preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      } else {
+        fileName.textContent = 'No file chosen';
+        preview.innerHTML = '';
+      }
+    });
+  }
+
+  handleFileInput(document.querySelector('input[name="{{ form.new_content.name }}"]'), 'face-preview');
+  handleFileInput(document.querySelector('input[name="{{ form.fullbody_new_content.name }}"]'), 'fullbody-preview');
+});
+  
+//   document.addEventListener('DOMContentLoaded', () => {
+//   const fileInput = document.querySelector('.file-input');
+//   const fileName = document.querySelector('.file-name');
+//   const filePreview = document.getElementById('file-preview');
+
+//   fileInput.addEventListener('change', (event) => {
+//     if (event.target.files.length > 0) {
+//       fileName.textContent = Array.from(event.target.files).map(file => file.name).join(', ');
+      
+//       filePreview.innerHTML = '';
+//       Array.from(event.target.files).forEach(file => {
+//         if (file.type.startsWith('image/')) {
+//           const reader = new FileReader();
+//           reader.onload = (e) => {
+//             const img = document.createElement('img');
+//             img.src = e.target.result;
+//             img.classList.add('column', 'is-3');
+//             img.style.objectFit = 'cover';
+//             img.style.height = '100px';
+//             filePreview.appendChild(img);
+//           };
+//           reader.readAsDataURL(file);
+//         }
+//       });
+//     } else {
+//       fileName.textContent = 'No file chosen';
+//       filePreview.innerHTML = '';
+//     }
+//   });
+// });
+
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base_test.html" %}
+{% load static %}
+{% block styles %}
+<style>
+    body {
+        background-color: #FFD1DC; /* Pastel pink background */
+    }
+    .floating-cats-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
+    .cat-wrapper {
+        position: absolute;
+        text-align: center;
+        animation: float 15s infinite ease-in-out;
+    }
+    .cat-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 2px 5px;
+        border-radius: 10px;
+    }
+    .cat-object {
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid black; /* Black border around the cat image */
+    }
+    .cat-object img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .add-cat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #AEC6CF; /* Pastel blue */
+    color: #000;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+.add-cat-button:hover {
+    background-color: #8EB3C7; /* Slightly darker pastel blue on hover */
+}
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-30px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="floating-cats-container">
+    {% for cat in cats %}
+    <div class="cat-wrapper" style="left: {% widthratio forloop.counter0 cats|length 100 %}%; top: {% widthratio forloop.counter cats|length 50 %}%;">
+        <div class="cat-name">{{ cat.name }}</div>
+           <div class="cat-object">
+            <a href = "{% url 'authy:cat-detail' cat.id %}">
+ 
+            {% if cat.picture %}
+            
+                <img src="{{ cat.picture.url }}" alt="Floating Cat">
+            {% else %}
+                <img src = "{% static 'img/cat_default_avatar.jpg' %}" alt = "Default cat avatar">
+            {% endif %}
+        </a>
+           </div>
+        </div>
+    {% endfor %}
+</div>
+<a href="{% url 'authy:add-cat' %}" class="add-cat-button">Add another cat</a>
+{% endblock %}
+

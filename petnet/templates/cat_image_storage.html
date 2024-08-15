@@ -1,0 +1,509 @@
+
+{% extends "base_test.html" %}
+{% load static %}
+{% block title %}Images of {{ cat.name }}{% endblock %}
+
+{% block styles %}
+<style>
+
+body {
+
+    background-color: #fce4ec;
+  }
+
+
+  .post-item {
+    width:20%;
+    margin-bottom: 20px;
+    
+    img {
+      width: 100%;
+      border-radius: 10px;
+      
+    }
+    
+
+  }
+
+  .delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #fff;
+    background-color: #dc3545;
+    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+
+
+  }
+
+  .blue-button {
+    position: fixed;
+    color: #fff;
+    bottom: 50px;
+    left: 50px;
+    background-color: #3835dc;
+    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+
+  }
+
+  .green-button {
+    position: fixed;
+    color: #fff;
+    bottom: 50px;
+    left: 200px;
+    background-color: #447c47;
+    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 2;
+    /* Increased */
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 30%;
+    position: relative;
+    /* Added */
+    z-index: 3;
+    /* Added */
+  }
+
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .modal-buttons {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .modal-buttons button {
+    margin: 0 10px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 4rem; /* Adjust the top position to account for the existing navbar */
+    left: 0;
+    width: 300px;
+    height: calc(100% - 4rem); /* Adjust the height to account for the existing navbar */
+    background-color: #f5f5f5;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+  }
+
+  .sidebar .card {
+    border: none;
+    border-radius: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar .card-content {
+    flex-grow: 1;
+    padding: 2rem;
+  }
+
+  .sidebar .media {
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .sidebar .media-content {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .sidebar .content {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .sidebar .func {
+    margin-top: 2rem;
+  }
+
+  .sidebar .cat-bottom {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .sidebar .cat-bottom a {
+    color: #4a4a4a;
+    text-decoration: none;
+  }
+
+  .sidebar .cat-bottom a:hover {
+    color: #0a0a0a;
+  }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{% static 'js/masonry.pkgd.js' %}"> </script>
+<script src="{% static 'js/mason.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+
+  <div class="background-image">
+
+
+  <div class="sidebar-fixed card">
+
+    <div class="card-content">
+      <div class="media">
+          <div class="media-content">
+              <p class="title is-4">{{ cat.name }}</p>
+          </div>
+      </div>
+      <div class="content">
+          {{ cat.description }}
+      </div>
+
+      <div class = "func">
+
+        {% if check %}
+        <button id="add_cat_img" class="button">Add Cat Image</button>
+        <!-- <div><a href="{% url 'authy:create-emb-vector' cat.id %}">Create Embedding Vector</a></div> -->
+        <button class = 'button' id="create-embedding">Tạo vector đặc trưng</button>
+
+        {% else %}
+        {% endif %}
+
+
+      </div>
+
+      <!-- <div class="cat-bottom">
+        <ul>
+          <h2>Other cats</h2>
+          {% for one in cats %}
+          {% if one.id != cat.id %}
+          <li>
+            <a href ="{% url 'authy:cat-detail' one.id %}">{{ one.name }}</a>
+          </li>
+          {% endif %}
+          {% endfor %}
+
+        </ul>
+
+          
+      </div> -->
+
+      <div class="column is-9">
+        <div class="tabs">
+          <ul>
+            <li class="{% if request.resolver_match.kwargs.type == 'face' %}is-active{% endif %}">
+              <a href="{% url 'authy:cat-image' cat.id 'face' %}" >Ảnh khuôn mặt</a>
+            </li>
+
+            <li class="{% if request.resolver_match.kwargs.type == 'body' %}is-active{% endif %}">
+              <a href="{% url 'authy:cat-image' cat.id 'body' %}" >Ảnh toàn thân</a>
+            </li>
+            
+          </ul>
+        </div>
+  </div>
+
+  </div>
+  <p><a href="{% url 'authy:cat-list' %}">Back to other cats</a></p>
+
+
+  <div id="cat_image_modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+
+        {% if request.resolver_match.kwargs.type == 'body' %}
+        <h2>Thêm ảnh toàn thân cho {{ cat.name }}</h2>
+        {% else %}
+        <h2>Thêm ảnh khuôn mặt cho {{ cat.name }}</h2>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class ='button is-primary' type="submit">Upload</button>
+        </form>
+    </div>
+</div>
+</div>
+  <div class="post-container">
+    {% for img in img_list %}
+    <div class="post-item">
+
+      <img data-code="{{ img.id }}" src="{{ img.pic.url }}">
+      <button class="delete-btn" id="cat-{{ img.id }}" data-post-id= "{% url 'authy:cat-img-delete' img.id %}">Delete</button>
+
+    </div>
+
+    {% empty %}
+    <h2>You have not added any images for {{ cat.name }}</h2>
+    {% endfor %}
+  </div>
+
+  <div id="confirmation-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Are you sure you want to delete this post?</p>
+      <div class="modal-buttons">
+        <button id="confirm-delete">Confirm</button>
+        <button id="cancel-delete">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="embedding-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Bạn đã có ít nhất 6 ảnh khuôn mặt cho {{ cat.name }}:?</p>
+      <div class="modal-buttons">
+        <button id="embedding-confirm">Confirm</button>
+        <button id="embedding-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+</div>
+{{ cat.id|json_script:"catId" }}
+
+  <script> 
+
+    
+
+      var modal = document.getElementById('cat_image_modal');
+      var btn = document.getElementById('add_cat_img');
+      const closeModalBtn = document.getElementsByClassName('close')[0];
+      const catId = JSON.parse(document.getElementById('catId').textContent);
+      
+      // for EMBEDDING
+      const embeddingModal = document.getElementById('embedding-modal');
+      const embeddingConfirmBtn = document.getElementById('embedding-confirm');
+      const embeddingCancelBtn = document.getElementById("embedding-cancel");
+      const embeddingBtn = document.getElementById('create-embedding');
+
+      window.onclick = function(event) {
+          if (event.target == modal) {
+              modal.style.display = "none";
+          }
+      }
+
+      embeddingBtn.onclick = function (){
+        embeddingModal.style.display = 'block';
+        console.log('Create embedding vector button clicked!')
+      }
+
+      // window.onclick = function(event) {
+      //     if (event.target == embeddingModal) {
+      //         console.log('out!');
+      //         embeddingModal.style.display = "none";
+      //     }
+      // }
+
+      function closeModal(){
+        embeddingModal.style.display = "none";
+        console.log('Close!');
+        model.style.display = "none";
+
+      }
+
+      closeModalBtn.addEventListener('clicked',closeModal)
+
+      function handleConfirmEmbedding() {
+        if (catId){
+          fetch(`/user/cats/create-emb-vector/${catId}/`,{
+            method: 'POST',
+            headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          }).then(response=>{
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          }).then(data=>{
+            if (data.success){
+              console.log('Embedding task given to celery successfully!');
+              // close Embeddingmodal
+              embeddingModal.style.display = "none";
+            } else{
+              alert('Not successful, try again');
+              console.log(`${data.message}`);
+            }
+          })
+
+        }
+        
+      }
+
+      embeddingConfirmBtn.addEventListener('click',handleConfirmEmbedding);
+      embeddingCancelBtn.addEventListener('click',closeEmbeddingModel);
+
+
+      function closeEmbeddingModel(){
+        embeddingModal.style.display = 'none';
+      }
+
+      btn.onclick = function() {
+          modal.style.display = "block";
+          console.log('add image button clicked!');
+      }
+
+      // span.onclick = function() {
+      //   console.log('close modal clicked!')
+      //     modal.style.display = 'none';
+      // }
+
+
+
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+    const confirmationModal = document.getElementById('confirmation-modal');
+    
+    const confirmDeleteButton = document.getElementById('confirm-delete');
+    const cancelDeleteButton = document.getElementById('cancel-delete');
+    
+
+    let postToDelete;
+    // let urlPostToDelete;
+
+    // Show the confirmation modal
+    function showConfirmationModal(postId) {
+      postToDelete = postId;
+      // urlPostToDelete = this.data['update-url'];
+      confirmationModal.style.display = 'block';
+    }
+
+    // Close the confirmation modal
+    function closeConfirmationModal() {
+      confirmationModal.style.display = 'none';
+      postToDelete = null;
+    }
+    function closeAddImageModal(){
+      modal.style.display = 'none';
+    }
+
+    // Handle delete confirmation
+    function handleDeleteConfirmation() {
+      if (postToDelete) {
+        console.log(`Deleting post with ID ${postToDelete}`);
+        // console.log(`Url of Post to delete ${urlPostToDelete}`);
+        // const deleteUrl = Urls.reverse('authz:cat-img-delete', [postToDelete]);
+        // Implement code to delete the post from the server
+        fetch(postToDelete, {
+
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              console.log(`Post with ID ${postToDelete} deleted successfully`);
+              // Optionally, you can remove the post from the DOM
+              
+              const deleteElement = document.querySelector(`[data-post-id = "${postToDelete}"]`);
+              const deletePost = deleteElement.closest('.post-item');
+              console.log(`Deleted Post ${deletePost}`);
+              if (deletePost){
+                deletePost.remove();
+              }
+            } else {
+              console.error('Failed to delete post');
+            }
+            closeConfirmationModal();
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            closeConfirmationModal();
+          });
+      }
+    }
+    // Helper function to get the CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+
+
+    // Handle delete cancellation
+    function handleDeleteCancellation() {
+      closeConfirmationModal();
+    }
+
+    // Close the modal when the close button or outside the modal is clicked
+    closeModal.onclick = closeConfirmationModal;
+    window.onclick = function (event) {
+      if (event.target === confirmationModal) {
+        closeConfirmationModal();
+      }
+    }
+
+    closeModal.onclick = closeAddImageModal;
+
+    // Event listeners for confirmation and cancellation buttons
+    confirmDeleteButton.addEventListener('click', handleDeleteConfirmation);
+    cancelDeleteButton.addEventListener('click', handleDeleteCancellation);
+
+    // Add event listeners to delete buttons
+    deleteBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const postId = btn.dataset.postId;
+        showConfirmationModal(postId);
+      });
+    });
+  </script>
+  
+{% endblock %}

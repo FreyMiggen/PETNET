@@ -1,0 +1,64 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello Bulma!</title>
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+  </head>
+  <body>
+
+
+  <section class="section">
+    <div class="container">
+
+<div class="columns is-mobile has-text-centered">
+  <div class="column is-half is-offset-one-quarter">
+
+    <div class="card">
+    <div class="card-content">
+
+    <!-- <form method="post" action="{% url 'authy:logout' %}?next={{ request.path }}">
+    {% csrf_token %}
+    <h3 class="title is-3">Do you want to logout?</h3>
+
+      <div class="field">
+      <p class="control">
+        <button type="submit" class="button is-success">
+          Confirm
+        </button>
+        <a class="button is-info" href="{{ next }}">Cancel</button></a>
+      </p>
+    </div>
+  </form> -->
+
+  <form method="post" action="{% url 'authy:logout' %}">
+    {% csrf_token %}
+    <h3 class="title is-3">Do you want to logout?</h3>
+
+    <div class="field">
+        <p class="control">
+            <button type="submit" name="action" value="Confirm" class="button is-success">Confirm</button>
+            <button type="submit" name="action" value="Cancel" class="button is-info">Cancel</button>
+        </p>
+    </div>
+</form>
+
+      </div>
+</div>
+
+
+    </div>
+  </section>
+
+    
+  </div>
+
+  <script>
+
+  </script>

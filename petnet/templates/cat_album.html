@@ -1,0 +1,86 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Album of Cat</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+      html, body {
+          height: 100%;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          background-color: #d6f3ff;
+      }
+      .content-wrapper {
+          flex: 1;
+      }
+      .post-item {
+        width: 20%;
+        margin-bottom: 10px;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .post-item:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .banner {
+    
+        padding: 30px;
+        text-align: center;
+        font-size: 3em;
+        font-weight: bold;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+      }
+    </style>
+    <script src="{% static 'js/masonry.pkgd.js' %}"> </script>
+    <script src="{% static 'js/mason.js' %}"></script>
+  </head>
+<body>
+
+  <div class="banner">
+    Album ảnh của {{ cat.name }}
+  </div>
+
+  <div class="post-container">
+    {% for post in post_list %}
+    {% for img in post.content.all %}
+    <div class="post-item">
+      <div class="card">
+        <div class="card-image">
+          <figure class="image">
+            <img src="{{ img.file.url }}" alt="Image">
+          </figure>
+        </div>
+        <div class="card-content">
+          <div class="media">
+            <div class="media-content">
+              <p class="title is-4">{{ cat.name }}</p>
+              <p></p>
+              <p class="subtitle is-6">
+                <time datetime="{{ date_created|date:'Y-m-d' }}">
+                  {{ post.posted|date:"F j, Y" }}
+                </time>
+              </p>
+            </div>
+          </div>
+          <div class="content">
+            {{ post.caption }}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% empty %}
+    <h2>You have not added any post for {{ cat.name }}</h2>
+    {% endfor %}
+  </div>
+
+</body>
+</html>
