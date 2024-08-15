@@ -47,7 +47,7 @@ Petnet is envisioned to help cat owners reunite with their missing cats. Cats mi
 
 </p>
 The rest is taken care by Petnet. Based on face recognition technology, it will find the best match it could by calculating embedding vectors for
-   each post and compare them. Detail on how it work could be find here <a href="https://github.com/FreyMiggen/PROJECT_CAT_FACE_RECOGNITION">Cat Face Verification</a>.
+each post and compare them. Detail on how it work could be find here <a href="https://github.com/FreyMiggen/PROJECT_CAT_FACE_RECOGNITION">Cat Face Verification</a>. <br>
 
    <p>
   <img src="assets/findcatfunction.png" width="80%" />
