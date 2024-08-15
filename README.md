@@ -37,8 +37,8 @@
    Moreover, when user creates a post that associates with one or more cats, images and other information from that post will be automatically updated to those cats image album.
    <p>
   <img src="assets/catalbum.png" width="80%" />
-
 </p>
+
 ## 3. Find Lost Cat function
 Petnet is envisioned to help cat owners reunite with their missing cats. Cats might have the tendency to wander off. If your cat might, unfornunately, go a little too far from home, or get stuck in some strange street corner, it will be helpful if someone come
    across your cat and post its images on the app as a Found Post. Now you also post a Lost Post on Petnet.
