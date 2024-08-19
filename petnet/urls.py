@@ -18,13 +18,14 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 
-from authy.views import UserProfileView, follow
+from authy.views import UserProfileView, follow, viewCat
 from post.views import index,FunctionNewsFeed,searchBar
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('admin_tools_stats/', include('admin_tools_stats.urls')),
+    path('<slug:slug>/cats/',viewCat,name='cat-list'),
     path('',index,name='newsfeed'),
     path('post/', include('post.urls')),
     path('user/', include('authy.urls')),

@@ -64,7 +64,7 @@
   <a href="{% url 'chat:room' profile.user.id %}" class="button">Inbox</a>
 
 {% endif %}
-<a href="{% url 'authy:cat-list' %}" class="button">View Cats</a>
+<a href="{% url 'cat-list' profile.slug %}" class="button">View Cats</a>
 
  </div>
 

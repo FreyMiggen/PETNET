@@ -245,7 +245,7 @@ body {
   </div>
 
   </div>
-  <p><a href="{% url 'authy:cat-list' %}">Back to other cats</a></p>
+  <p><a href="{% url 'cat-list' cat.user.profile.slug %}">Back to other cats</a></p>
 
 
   <div id="cat_image_modal" class="modal" style="display: none;">
@@ -270,8 +270,10 @@ body {
     <div class="post-item">
 
       <img data-code="{{ img.id }}" src="{{ img.pic.url }}">
+      {% if check %}
       <button class="delete-btn" id="cat-{{ img.id }}" data-post-id= "{% url 'authy:cat-img-delete' img.id %}">Delete</button>
-
+      {% else %}
+      {% endif %}
     </div>
 
     {% empty %}
@@ -307,8 +309,6 @@ body {
 {{ cat.id|json_script:"catId" }}
 
   <script> 
-
-    
 
       var modal = document.getElementById('cat_image_modal');
       var btn = document.getElementById('add_cat_img');

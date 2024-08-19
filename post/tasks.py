@@ -238,10 +238,11 @@ def matchCat(post_id,in_batch=False):
         ids = []
         embeddings = []
         for found in founds:
-            id = found.id
-            embedding = read_file(found.embedding.path)
-            ids.append(id)
-            embeddings.append(embedding)
+            if found.embedding:
+                id = found.id
+                embedding = read_file(found.embedding.path)
+                ids.append(id)
+                embeddings.append(embedding)
         A = np.stack(embeddings,axis=0) # of shape (m,3,32)
         print(A.shape)
 

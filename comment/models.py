@@ -29,10 +29,10 @@ def user_comment_post(sender, instance, **kwargs):
 	post = comment.post
 	text_preview = comment.body[:90]
 	sender = comment.user
-
-	# update comment_count for post
-	post.comment_count = post.comment_count+1
-	post.save()
+				# update comment_count for post. use update 
+			# instead of save() to avoid triggering post_save signal on post
+	new_comment_count = post.comment_count+1
+	BasePost.objects.filter(id=post.id).update(comment_count=new_comment_count)
 
 	# create a notification for owner of post
 	notify = Notification(post=post, sender=sender, user=post.user, text_preview=text_preview, notification_type=2)
@@ -57,9 +57,10 @@ def user_del_comment_post(sender, instance, **kwargs):
 	comment = instance
 	post = comment.post
 	sender = comment.user
-		# update comment_count for post
-	post.comment_count = post.comment_count-1
-	post.save()
+
+	# update comment_count for post
+	new_comment_count = post.comment_count-1
+	BasePost.objects.filter(id=post.id).update(comment_count=new_comment_count)
 
 	try:
 		notify = Notification.objects.filter(post=post, sender=sender, notification_type=2).latest('date')

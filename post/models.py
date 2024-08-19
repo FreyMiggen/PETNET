@@ -162,7 +162,7 @@ class Stream(models.Model):
 		user = post.user
 		followers = Follow.objects.all().filter(following=user)
 		
-		
+		# if a stream is already created ( when add_post is called when post is updated=> do not create another stream object)
 		for follower in followers:
 			stream,created = Stream.objects.get_or_create(post=post, user=follower.follower, date=post.posted, following=user)
 			if not created:
@@ -274,11 +274,11 @@ def unfollow_notify(sender, instance, **kwargs):
 	following = follow.following
 
 	# HANDLE STREAM
-	# when an unfollow happens => hide all stream
-	streams = Stream.objects.filter(following=following,user=follow.follower)
-	for stream in streams:
-		stream.hidden = True
-		stream.save()
+	# when an unfollow happens => hide all stream => already handled in authy.views.follow
+	# streams = Stream.objects.filter(following=following,user=follow.follower)
+	# for stream in streams:
+	# 	stream.hidden = True
+	# 	stream.save()
 
 
 	# HANDLE NOTIFCATIONS

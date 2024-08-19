@@ -22,14 +22,6 @@ class MultipleFileField(forms.FileField):
             result = single_file_clean(data, initial)
         return result
 
-class NewPostForm(forms.ModelForm):
-	content = MultipleFileField(label='Add images to your post',required=True)
-	caption = forms.CharField(widget=forms.Textarea(attrs={'class': 'input is-medium'}), required=True)
-	tags = forms.CharField(widget=forms.TextInput(attrs={'class': 'input is-medium'}), required=True)
-
-	class Meta:
-		model = Post
-		fields = ('content', 'caption', 'tags')
 
 
 class NewLostPostForm(forms.ModelForm):
@@ -52,7 +44,8 @@ class NewLostPostForm(forms.ModelForm):
 				'class':'form-control',
 				'type':'datetime-local',
 			}),
-			initial='2024-08-13'	
+		input_formats=['%Y-%m-%dT%H:%M'],  # Format for datetime-local input
+        initial=timezone.localtime().strftime('%Y-%m-%dT%H:%M')
 	)
 	class Meta:
 		model = LostPost
@@ -69,6 +62,14 @@ class NewLostPostForm(forms.ModelForm):
 		if commit:
 			instance.save()
 		return instance
+	def clean_lost_time(self):
+		lost_time = self.cleaned_data.get('lost_time')
+		if lost_time:
+			if timezone.is_naive(lost_time):
+				return timezone.make_aware(lost_time,timezone.get_current_timezone())
+			else:
+				return lost_time
+		return lost_time
     		
 
 class NewFoundPostForm(forms.ModelForm):

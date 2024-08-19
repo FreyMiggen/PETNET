@@ -104,7 +104,7 @@
             </div>
         </div>
         <div class="match-form">
-            <form method="post">
+            <form id="matchForm" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="lost_id" value="{{ posts.0.id }}">
                 <input type="hidden" name="found_id" value="{{ post.1.id }}">

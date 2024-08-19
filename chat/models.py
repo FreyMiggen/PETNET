@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 User = get_user_model()
 from django.utils import timezone
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
 class ChatRoom(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -15,6 +17,7 @@ class ChatRoom(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user1_last_visit = models.DateTimeField(null=True, blank=True)
     user2_last_visit = models.DateTimeField(null=True, blank=True)
+    lastest_update_time = models.DateTimeField(null=True)
 
     class Meta:
         constraints = [
@@ -72,6 +75,19 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return self.content
+
+   
+from django.utils import timezone
+@receiver(post_save,sender=ChatMessage)
+def update_lastest_time(sender,instance,**kwargs):
+    # message= instance
+    room = instance.room
+    room.lastest_update_time = timezone.now()
+    room.save()
+
+
+
+
 
 
 

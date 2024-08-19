@@ -80,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'notifications.views.CountNotifications',
+                'chat.views.CountMessages',
                 'direct.views.checkDirects',
             ],
         },

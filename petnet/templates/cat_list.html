@@ -81,6 +81,10 @@
         </div>
     {% endfor %}
 </div>
+{% if checked %}
 <a href="{% url 'authy:add-cat' %}" class="add-cat-button">Add another cat</a>
+{% else %}
+
+{% endif %}
 {% endblock %}
 

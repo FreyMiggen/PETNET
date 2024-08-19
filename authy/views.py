@@ -28,54 +28,6 @@ def showUser(request):
 
 
 
-# def UserProfile(request, slug,type='normal'):
-# 	profile = get_object_or_404(Profile, slug=slug)
-# 	user = profile.user
-# 	# get profile of the user making the request
-# 	requesting_profile = get_object_or_404(Profile,user=request.user)
-# 	url_name = resolve(request.path).url_name
-	
-# 	if url_name == 'profile':
-	# 		posts = Post.objects.filter(user=user).order_by('-posted')
-
-	# 	else:
-	# 		if type == 'lost':
-	# 			posts = LostPost.objects.filter(user=user).order_by('-posted')
-	# 		if type == "found":
-	# 			posts = FoundPost.objects.filter(user=user).order_by('-posted')
-	# 		else:
-	# 			posts = Post.objects.filter(user=user).order_by('-posted')
-	# 		# posts = profile.favorites.all()
-
-	# 	#Profile info box
-	# 	posts_count = Post.objects.filter(user=user).count()
-	# 	following_count = Follow.objects.filter(follower=user).count()
-	# 	followers_count = Follow.objects.filter(following=user).count()
-
-	# 	#follow status
-	# 	follow_status = Follow.objects.filter(following=user, follower=request.user).exists()
-
-	# 	#Pagination
-	# 	paginator = Paginator(posts, 8)
-	# 	page_number = request.GET.get('page')
-	# 	posts_paginator = paginator.get_page(page_number)
-
-	# 	template = loader.get_template('profile.html')
-
-	# 	context = {
-	# 		'posts': posts_paginator,
-	# 		'profile':profile,
-	# 		'following_count':following_count,
-	# 		'followers_count':followers_count,
-	# 		'posts_count':posts_count,
-	# 		'follow_status':follow_status,
-	# 		'url_name':url_name,
-	# 		'requesting_profile':requesting_profile
-	# 	}
-
-	# 	return HttpResponse(template.render(context, request))
-
-
 from django.db.models import Case, When, Value, BooleanField, Exists, OuterRef
 from django.db.models.functions import Coalesce
 
@@ -253,20 +205,27 @@ def logoutView(request):
 
 @login_required
 def follow(request, user_id, option):
+	"""
+	Handle all logic for follow. Do not use model signal for follow unless for creating notification
+	"""
 	following = get_object_or_404(User, id=user_id)
 
 	try:
 		f, created = Follow.objects.get_or_create(follower=request.user, following=following)
 		if int(option) == 0:
 			f.delete()
-			Stream.objects.filter(following=following, user=request.user).all().delete()
+			Stream.objects.filter(following=following, user=request.user).update(hidden=True)
+			
 		else:
-			posts = Post.objects.all().filter(user=following)[:25]
+			posts = Post.objects.all().filter(user=following).order_by('-posted')[:25]
 
 			with transaction.atomic():
 				for post in posts:
-					stream = Stream(post=post, user=request.user, date=post.posted, following=following)
-					stream.save()
+					stream,created = Stream.objects.get_or_create(post=post, user=request.user, date=post.posted, following=following)
+					if not created:
+						stream.hidden = False
+						stream.save()
+					
 
 		return HttpResponseRedirect(reverse('profile', args=[following.profile.slug]))
 		
@@ -434,12 +393,21 @@ def catAlbum(request,cat_id):
 	return render(request,'cat_album.html',context)
 
 @login_required(login_url='authy:login')
-def viewCat(request):
+def viewCat(request,slug):
 	user = request.user
-	cats = Cat.objects.filter(user=user)
+	profile = get_object_or_404(Profile,slug=slug)
+	cat_list = Cat.objects.filter(user=profile.user)
+	if user == profile.user:
+		cats = cat_list
+		checked=True
+	else:
+		checked = False
+		cats = []
+		for cat in cat_list:
+			if cat.can_access(request.user.id):
+				cats.append(cat)
 	
-	
-	return render(request,'cat_list.html',{'cats':cats,'requesting_profile':user.profile})
+	return render(request,'cat_list.html',{'cats':cats,'requesting_profile':request.user.profile,'checked':checked})
 
 
 # FIX THIS CODE

@@ -9,6 +9,30 @@ from django.db.models import Q
 from django.views.decorators.http import require_GET
 User = get_user_model()
 
+
+
+def CountMessages(request):
+    count_messages = 0
+    if request.user.is_authenticated:
+        current_user = request.user
+
+        all_chat_rooms = ChatRoom.objects.filter(
+                Q(user1=current_user) | Q(user2=current_user)
+        )
+
+        # get the unread_message
+        for room in all_chat_rooms:
+            if current_user == room.user1:
+                unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user1_last_visit,room.lastest_update_time)).count()
+                
+                
+            else:
+                unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user2_last_visit,room.lastest_update_time)).count()
+                
+            count_messages+=unread_message
+
+    return {'count_messages':count_messages}
+
 @login_required
 def chat_room(request, user_id):
     user2 = get_object_or_404(User, id=user_id)
@@ -92,7 +116,7 @@ def open_inbox(request):
 
     all_chat_rooms = ChatRoom.objects.filter(
             Q(user1=current_user) | Q(user2=current_user)
-    )
+    ).order_by('-lastest_update_time')
 
     other_users = list()
     for room in all_chat_rooms:
@@ -100,8 +124,21 @@ def open_inbox(request):
             other_users.append(room.user2)
         else:
             other_users.append(room.user1)
+
+    # get the unread_message
+    unread_counts=[]
+    for room in all_chat_rooms:
+        if current_user == room.user1:
+            unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user1_last_visit,room.lastest_update_time)).count()
+            unread_counts.append(unread_message)
+        else:
+            unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user2_last_visit,room.lastest_update_time)).count()
+            unread_counts.append(unread_message)
+
     # get the chat room that is most recent active
-    messages = ChatMessage.objects.filter(user=current_user)
+    results =[{'room':room,'other_user':other_user,'unread':unread} for (room,other_user,unread) in zip(all_chat_rooms,other_users,unread_counts)]
+    
+    return render(request,'inbox.html',{'results':results})
 
 
 @login_required

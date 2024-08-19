@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 import json
 from post.models import Stream, Post, Tag, Likes, PostFileContent, LostPost, FoundPost, CandidateMatch,BasePost
-from post.forms import NewPostForm, NewLostPostForm, NewFoundPostForm,PostCreateWithImagesForm, PostEditForm
+from post.forms import NewLostPostForm, NewFoundPostForm,PostCreateWithImagesForm, PostEditForm
 from stories.models import Story, StoryStream
 from django.forms import modelformset_factory
 from comment.models import Comment
@@ -81,7 +81,6 @@ def index(request):
 		'post_items': results,
 		
 		'requesting_profile':profile
-
 		}
 
 		return HttpResponse(template.render(context, request))
@@ -168,6 +167,8 @@ def PostDetails(request, post_id):
 			comment.post = post
 			comment.user = user
 			comment.save()
+					
+
 			return HttpResponseRedirect(reverse('post:postdetails', args=[post_id]))
 	else:
 		form = CommentForm()
@@ -260,10 +261,11 @@ def NewFunctionPost(request,option):
 
 			if option=='lost':
 				# lost_time = form.cleaned_data('lost_time')
-				post = LostPost.objects.create(caption=caption, user=user,geotag=geotag)
+				lost_time = form.cleaned_data.get('lost_time')
+				post = LostPost.objects.create(caption=caption, user=user,geotag=geotag,lost_time=lost_time)
 			else:
-				# found_time = form.cleaned_data('found_time')
-				post = FoundPost.objects.create(caption=caption, user=user,geotag=geotag)
+				found_time = form.cleaned_data.get('found_time')
+				post = FoundPost.objects.create(caption=caption, user=user,geotag=geotag,found_time=found_time)
 
 			# for tag in tags_list:
 			# 	slug = slugify(tag)
@@ -283,8 +285,6 @@ def NewFunctionPost(request,option):
 				post.fullbody_img.add(file_instance)
     		
 			
-			post_form.save()
-
 			if option == 'lost':
 				createEmbedding.apply_async(args=[post.id],kwargs={'found':False,'field_name':'embedding'})
 				url = reverse('post:lostpostdetails',kwargs={'post_id':post.id})
@@ -446,8 +446,10 @@ def like(request, post_id):
 		current_likes = current_likes - 1
 		status = 'unliked'
 
-	post.likes = current_likes
-	post.save()
+	# using update to avoid triggering post_save signal
+	BasePost.objects.filter(id=post_id).update(likes=current_likes)
+	# post.likes = current_likes
+	# post.save()
 
 	return JsonResponse({'likes':post.likes,'status':status})
 
@@ -508,6 +510,8 @@ def comparison(request,lost_id,found_id):
 			found.is_matched = True
 			messages.success(request,"Posts have been marked as matched!.")
     		# redirect
+			url = reverse('chat:room', kwargs={'user_id': owner_id})
+			return HttpResponse({'success':True,'url':url})
 			return redirect('chat:room',user_id=owner_id)	
 			# redirect user to inbox to the owner of foundpost
 			# system send notification to onwer of foundpost, at the same time, create a chat room for two people

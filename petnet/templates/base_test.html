@@ -27,13 +27,24 @@
         .content-wrapper {
             flex: 1;
         }
+
+        .navbar-fixed-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+    body {
+        padding-top: 52px; /* Adjust this value based on your navbar height */
+    }
     </style>
       {% block styles %}{% endblock %}
       {% block scripts %}{% endblock %}
   </head>
   <body>
 
-    <nav class="navbar" role="navigation" aria-label="main navigation">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
       <a class="navbar-item" href="{% url 'newsfeed' %}">
         <img src="{% static 'img/avatar.jpg' %}" width="64" height="64">
@@ -81,11 +92,15 @@
           {% endif %}
         </a>
   
-        <a href="#" class="navbar-item">
+        <a href="{% url 'chat:inbox' %}" class="navbar-item">
           <i class="material-icons">inbox</i>
           Inbox
-          {% if directs_count %}
-          <span class="badge">{{ directs_count }}</span>
+          {% if count_messages != 0 %}
+          <span class='badge' id="message-count">{{ count_messages }}</span>
+       
+          
+          {% else %}
+          <span class="badge" id ="message-count" style="display:none;">0</span>
           {% endif %}
         </a>
   
