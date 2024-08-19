@@ -155,16 +155,19 @@ class Stream(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)   
 	post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
 	date = models.DateTimeField()
+	hidden = models.BooleanField(default=False)
 
 	def add_post(sender, instance, *args, **kwargs):
 		post = instance
 		user = post.user
 		followers = Follow.objects.all().filter(following=user)
 		
-		# hot_posts = Post.objects.all().order_by("-likes")
+		
 		for follower in followers:
-			stream = Stream(post=post, user=follower.follower, date=post.posted, following=user)
-			stream.save()
+			stream,created = Stream.objects.get_or_create(post=post, user=follower.follower, date=post.posted, following=user)
+			if not created:
+				stream.hidden = False
+				stream.save()
 		
 
 class Likes(models.Model):
@@ -174,6 +177,13 @@ class Likes(models.Model):
 
 post_save.connect(Stream.add_post, sender=Post)
 
+
+# HANDLE NOTIFICATION WHEN A POST IS DELETED
+@receiver(post_delete,sender=BasePost)
+def process_post_delete(sender,instance,**kwargs):
+	basepost = instance
+	notifications = Notification.objects.filter(post=basepost)
+	notifications.delete()
 
 # # FOLLOW
 
@@ -225,29 +235,36 @@ def follow_notify(sender,instance,**kwargs):
 def unlike_notify(sender,instance,**kwargs):
 	like = instance
 	post = like.post
-	notify = Notification.objects.filter(post=post, sender=like.user, notification_type=1)[0]
-	if notify.is_seen:
-		check = False
-	else:
-		check=True
-	notify.delete()
+	# also handle for deleting post. When a post is deleted, all likes related to it also get deleted 
+	# => trigger unlike_notify
+	try:
+		notify = Notification.objects.filter(post=post, sender=like.user, notification_type=1).latest('date')
+		if notify.is_seen:
+			check = False
+		else:
+			check=True
+		notify.hidden = True
+		notify.save()
 
 	# if the follow notification is not seen yet => minus 1 from count_notification
-	if check:
-			# send realtime-notification
-		channel_layer = get_channel_layer()
+		if check:
+				# send realtime-notification
+			channel_layer = get_channel_layer()
 
-		async_to_sync(channel_layer.group_send)(
-			f"user_{post.user.id}",
-			{
-				"type": "send_notification",
-				"message": {
-				"action": "delete_like",
+			async_to_sync(channel_layer.group_send)(
+				f"user_{post.user.id}",
+				{
+					"type": "send_notification",
+					"message": {
+					"action": "delete_like",
 
+					}
+					
 				}
-				
-			}
-		)
+			)
+	except:
+		# in case a post is deleted, we do not need to do anything! 
+		print('We do not need to do anything')
 
 
 
@@ -256,30 +273,42 @@ def unfollow_notify(sender, instance, **kwargs):
 	follow = instance
 	following = follow.following
 
-	notify = Notification.objects.filter(sender=follow.follower, user=following, notification_type=3)
-	if len(notify)>=1:
-		notify= notify[0]
-		if notify.is_seen:
-			check = False
-		else:
-			check = True
+	# HANDLE STREAM
+	# when an unfollow happens => hide all stream
+	streams = Stream.objects.filter(following=following,user=follow.follower)
+	for stream in streams:
+		stream.hidden = True
+		stream.save()
 
-		notify.delete()
 
-		if check:
-			# send realtime-notification
-			channel_layer = get_channel_layer()
+	# HANDLE NOTIFCATIONS
+	try:
+		notify = Notification.objects.filter(sender=follow.follower, user=following, notification_type=3)
+		if len(notify)>=1:
+			notify= notify[0]
+			if notify.is_seen:
+				check = False
+			else:
+				check = True
 
-			async_to_sync(channel_layer.group_send)(
-				f"user_{following.id}",
-				{
-					"type": "send_notification",
-					"message": {
-						'action':'delete_follow'
+			notify.hidden = True
+			notify.save()
+
+			if check:
+				# send realtime-notification
+				channel_layer = get_channel_layer()
+
+				async_to_sync(channel_layer.group_send)(
+					f"user_{following.id}",
+					{
+						"type": "send_notification",
+						"message": {
+							'action':'delete_follow'
+						}
 					}
-				}
-			)
-			
+				)
+	except:
+		print('All follows are deleted!')
 
 
 # Embedding created

@@ -223,12 +223,14 @@ class CatFullBodyImage(models.Model):
     cat = models.ForeignKey(Cat,on_delete=models.CASCADE,related_name='fullbody_images')
     pic = models.ImageField(upload_to=cat_fullbody_image_directory,null=False,blank=False)
 
+from django.utils import timezone
+from datetime import datetime
 
-
+# now = timezone.make_aware(datetime.now,timezone.get_current_timezone())
 class CatImageStorage(models.Model):
     cat = models.ForeignKey(Cat,on_delete=models.CASCADE,related_name='images')
     pic = models.ImageField(upload_to=cat_image_directory,null=False,blank=False)
-    
+    created = models.DateTimeField(auto_now_add=True,null=True)
     
     def img_fol(self):
         return os.path.normpath(os.path.join(settings.MEDIA_ROOT,f'cats/cat_{self.cat.id}'))

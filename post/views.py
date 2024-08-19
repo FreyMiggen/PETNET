@@ -30,48 +30,61 @@ from django.utils.text import slugify
 from django.utils import timezone
 from datetime import timedelta
 from django.template.loader import render_to_string
+import itertools
 # Create your views here.
 @login_required(login_url='authy:login')
+@require_GET
 def index(request):
 	user = request.user
-	posts = Stream.objects.filter(user=user)
-	    # Calculate the timestamp for 48 hours ago
-	time_threshold = timezone.now() - timedelta(hours=96)
+	followed_posts = Stream.objects.filter(user=user,hidden=False).order_by('-date')
+	followed_posts = [stream.post for stream in followed_posts]
+	#     # Calculate the timestamp for 10 days ago
+	time_threshold = timezone.now() - timedelta(hours=240)
 
-	# Query to retrieve the 20 posts with the highest likes, posted in the last 48 hours
+	# # Query to retrieve the 20 posts with the highest likes, posted in the last 10 days
 	top_posts = Post.objects.filter(
 		posted__gte=time_threshold,  # Posts from the last 48 hours
 		is_hidden=False,
 		privacy = 'public',  # Exclude hidden posts
-	).order_by('-likes')[:20]  # Order by likes in descending order and limit to 20 posts
+	).order_by('-likes')  # Order by likes in descending order and limit to 20 posts
 
-	stories = StoryStream.objects.filter(user=user)
+	posts = list(itertools.chain(followed_posts,top_posts))
 
 	profile = get_object_or_404(Profile,user=user)
-
-	group_ids = []
-
-	for post in posts:
-		group_ids.append(post.post_id)
-	for post in top_posts:
-		group_ids.append(post.id)
 		
-	post_items = Post.objects.filter(id__in=group_ids).all().order_by('-posted')
+	paginator = Paginator(posts,5) # show 2 post per page
 
-	likes =[post_item.has_liked(request.user.id) for post_item in post_items]
 
-	results= [{'post_item':post_item,'liked':like} for (post_item,like) in zip(post_items,likes)]		
+	if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+		page = int(request.GET.get('page'))
+		page_obj = paginator.get_page(page)
+    	
+		likes = [post_item.has_liked(request.user.id) for post_item in page_obj]
+		results = []
+		for post_item, like in zip(page_obj, likes):
+			post_html = render_to_string('post_item.html', {
+				'post_item': post_item,
+				'liked': like,
+				'requesting_profile': request.user.profile
+			}, request=request)
+			results.append({'html': post_html,'test':'kim'})
+		return JsonResponse({'results': results,'has_next': page_obj.has_next(),'number':page})
+	else:
+		page_obj = paginator.get_page(1)
+		likes =[post_item.has_liked(request.user.id) for post_item in page_obj]
 
-	template = loader.get_template('index.html')
+		results= [{'post_item':post_item,'liked':like} for (post_item,like) in zip(page_obj,likes)]		
 
-	context = {
+		template = loader.get_template('index.html')
+
+		context = {
 		'post_items': results,
-		'stories': stories,
+		
 		'requesting_profile':profile
 
-	}
+		}
 
-	return HttpResponse(template.render(context, request))
+		return HttpResponse(template.render(context, request))
 
 @login_required(login_url='authy:login')
 def FunctionNewsFeed(request,option):
@@ -85,11 +98,12 @@ def FunctionNewsFeed(request,option):
 	# results= [{'post_item':post_item,'liked':like} for (post_item,like) in zip(posts,likes)]
 
 	
-	paginator = Paginator(posts, 10)  # Show 10 posts per page
-	page_number = request.GET.get('page', 1)
-	page_obj = paginator.get_page(page_number)
+	paginator = Paginator(posts, 2)  # Show 10 posts per page
+	# count = paginator.count
 
 	if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+		page = int(request.GET.get('page'))
+		page_obj = paginator.get_page(page)
 		likes = [post_item.has_liked(request.user.id) for post_item in page_obj]
 		results = []
 		for post_item, like in zip(page_obj, likes):
@@ -98,18 +112,20 @@ def FunctionNewsFeed(request,option):
 				'liked': like,
 				'requesting_profile': request.user.profile
 			}, request=request)
+
 			results.append({'html': post_html})
-		return JsonResponse({'results': results, 'option':option,'has_next': page_obj.has_next()})
+		return JsonResponse({'results': results, 'option':option,'has_next': page_obj.has_next(),'number':page})
+	else:
+		page_obj = paginator.get_page(1)
+		likes = [post_item.has_liked(request.user.id) for post_item in page_obj]
+		results = [{'post_item': post_item, 'liked': like} for post_item, like in zip(page_obj, likes)]
 
-	likes = [post_item.has_liked(request.user.id) for post_item in page_obj]
-	results = [{'post_item': post_item, 'liked': like} for post_item, like in zip(page_obj, likes)]
-
-	return render(request, 'function_newsfeed.html', {
-		'post_items': results,
-		'requesting_profile': request.user.profile,
-		'page_obj': page_obj,
-		'option':option,
-	})
+		return render(request, 'function_newsfeed.html', {
+			'post_items': results,
+			'requesting_profile': request.user.profile,
+			'page_obj': page_obj,
+			'option':option,
+		})
 
 @login_required(login_url='authy:login')
 def PostDetails(request, post_id):

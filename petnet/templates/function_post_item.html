@@ -1,12 +1,12 @@
 {% load static %}
 {% load humanize %}
 
-{% for item in post_items %}
+
   <div class="card">
   <div class="card-image">
     <figure class="image is-5by3">
-      <a href="{{ item.post_item.get_absolute_url }}">
-        <img src="{{ item.post_item.content.first.file.url }}" alt="Placeholder image">
+      <a href="{{ post_item.get_absolute_url }}">
+        <img src="{{ post_item.content.first.file.url }}" alt="Placeholder image">
       </a>
     </figure>
 
@@ -15,53 +15,53 @@
     <div class="media">
       <div class="media-left">
         <figure class="image is-48x48">
-          {% if item.post_item.user.profile.picture %}
-            <img src="{{ item.post_item.user.profile.picture.url }}" alt="Placeholder image">
+          {% if post_item.user.profile.picture %}
+            <img src="{{ post_item.user.profile.picture.url }}" alt="Placeholder image">
           {% else %}
             <img src="{% static 'img/avatar_placeholder.png' %}" alt="Placeholder image">
           {% endif %}
         </figure>
       </div>
       <div class="media-content">
-        {% if item.post_item.user.profile.first_name %}
-          <a href="{% url 'profile' item.post_item.user.profile.slug %}"><p class="title is-4">{{ item.post_item.user.profile.first_name }} {{ item.post_item.user.profile.last_name }}</p></a>
+        {% if post_item.user.profile.first_name %}
+          <a href="{% url 'profile' post_item.user.profile.slug %}"><p class="title is-4">{{ post_item.user.profile.first_name }} {{ post_item.user.profile.last_name }}</p></a>
         {% else %}
-          <a href="{% url 'profile' item.post_item.user.profile.slug %}"><p class="title is-4">{{ item.post_item.user.get_short_name }}</p></a>
+          <a href="{% url 'profile' post_item.user.profile.slug %}"><p class="title is-4">{{ post_item.user.get_short_name }}</p></a>
         {% endif %}
 
-        <p class="subtitle is-6"><a href="{% url 'profile' item.post_item.user.profile.slug %}">@{{ item.post_item.user.get_short_name }}</a></p>
+        <p class="subtitle is-6"><a href="{% url 'profile' post_item.user.profile.slug %}">@{{ post_item.user.get_short_name }}</a></p>
 
-      {{ item.post_item.caption }}
+      {{ post_item.caption }}
       {% if option == 'lost' %}
       
       <p><strong>Địa điểm lạc: </strong>
-        {% if item.post_item.geotag %} {{ item.post_item.geotag }}{% else %}Không có thông tin{% endif %}</p>
-      <p><strong>Thời gian lạc:</strong> {% if item.post_item.lost_time %} {{ item.post_item.lost_time}}{% else %}Không có thông tin{% endif %}</p>
+        {% if post_item.geotag %} {{ post_item.geotag }}{% else %}Không có thông tin{% endif %}</p>
+      <p><strong>Thời gian lạc:</strong> {% if post_item.lost_time %} {{ post_item.lost_time}}{% else %}Không có thông tin{% endif %}</p>
 
       {% else %}
       <p><strong>Địa điểm thấy:</strong> 
-        {% if item.post_item.geotag %} {{ item.post_item.geotag }}{% else %}Không có thông tin{% endif %}</p>
-      <p><strong>Thời gian thấy:</strong> {% if item.post_item.found_time %} {{ item.post_item.found_time }}{% else %}Không có thông tin{% endif %}</p>
+        {% if post_item.geotag %} {{ post_item.geotag }}{% else %}Không có thông tin{% endif %}</p>
+      <p><strong>Thời gian thấy:</strong> {% if post_item.found_time %} {{ post_item.found_time }}{% else %}Không có thông tin{% endif %}</p>
 
       {% endif %}
-      <p>{% for tag in item.post_item.tags.all %}<a href="{{ tag.get_absolute_url }}">#{{ tag }}</a>{% endfor %}</p>
+      <p>{% for tag in post_item.tags.all %}<a href="{{ tag.get_absolute_url }}">#{{ tag }}</a>{% endfor %}</p>
       <br>
-      <strong><small>{{ item.post_item.posted | naturaltime }}</small></strong>
+      <strong><small>{{ post_item.posted | naturaltime }}</small></strong>
       </div>
 
 
     <div class="media-right">
       <div class="level is-mobile mt-3">
         <div class="level-left">
-          <button class="like-button {% if item.liked %}liked{% endif %}" 
+          <button class="like-button {% if liked %}liked{% endif %}" 
           onclick="toggleLike(this)" 
-          data-post-id="{{ item.post_item.id }}" 
-          data-url="{% url 'post:like-post' item.post_item.id %}">
-          <i class="{% if item.liked %}fas{% else %}far{% endif %} fa-heart"></i>
+          data-post-id="{{ post_item.id }}" 
+          data-url="{% url 'post:like-post' post_item.id %}">
+          <i class="{% if liked %}fas{% else %}far{% endif %} fa-heart"></i>
           </button>
 
           <div class="post-likes">
-            <span id="likes-count-{{ item.post_item.id }}">{{ item.post_item.likes }}</span>
+            <span id="likes-count-{{ post_item.id }}">{{ post_item.likes }}</span>
           </div>
 
         </div>
@@ -74,7 +74,7 @@
       </button>
 
       <div class="post-comments">
-        <span id="comments-count-{{ item.post_item.id }}">{{ item.post_item.comment_count }}</span>
+        <span id="comments-count-{{ post_item.id }}">{{ post_item.comment_count }}</span>
       </div>
       </div>
 
@@ -87,4 +87,3 @@
 
 <br>
 
-{% endfor %}

@@ -61,7 +61,7 @@
                 <!-- Card -->
                 <div class="card is-rounded">
                     <header class="card-header">
-                        <p class="card-header-title">Card header</p>
+                        <p class="card-header-title">Hồ sơ thú cưng</p>
                         <button class="card-header-icon" aria-label="more options">
                           <span class="icon">
                             <i class="fas fa-angle-down" aria-hidden="true"></i>
@@ -70,14 +70,24 @@
                       </header>
                     <div class="card-content">
                         <div class="content">
-                            <h2 class="title is-4 cute-title">{{ cat.name }}</h2>
+                            <h2 class="title is-4 cute-title">{{ cat.name }}
+                                {% if cat.privacy == 'private' %}
+                                <span> <i class="fa-solid fa-lock"></i></span>
+                                {% elif cat.privacy == 'followers' %}
+                                <i class="fa-solid fa-user-group"></i>
+                                {% else %}
+                                <span> <i class="fa-solid fa-globe"></i></span>
+                                {% endif %}
+                               
+                            </h2>
                             <p class="cute-description"> {{ cat.description }}</p>
+
                         </div>
                     </div>
                     <footer class="card-footer">
-                        <a href="{% url 'authy:cat-image' cat.id 'face' %}" class="card-footer-item button is-small cute-footer-item">Face Image Storage</a>
+                        <a href="{% url 'authy:cat-image' cat.id 'face' %}" class="card-footer-item button is-small cute-footer-item">Kho trữ hình ảnh</a>
                         <a href="{% url 'authy:cat-album' cat.id %}" class="card-footer-item button is-small cute-footer-item">Album</a>
-                        <a href="{{ link3_url }}" class="card-footer-item button is-small cute-footer-item">Favorite Food</a>
+                        <a href="{{ link3_url }}" class="card-footer-item button is-small cute-footer-item">Thức ăn yêu thích</a>
                     </footer>
                 </div>
             </div>

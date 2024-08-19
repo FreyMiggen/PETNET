@@ -532,7 +532,14 @@ function showSlides(n) {
           },
 
         })
-          .then(response => response.json())
+          .then(response => {
+            if (response.ok) {
+              return response.json()
+            }else{
+              console.log('Internal error!');
+            }
+          })
+         
           .then(data => {
             if (data.success) {
               console.log(`Post with ID ${postId} deleted successfully`);

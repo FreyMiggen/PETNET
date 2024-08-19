@@ -25,6 +25,7 @@ class Notification(models.Model):
 	date = models.DateTimeField(auto_now_add=True)
 	is_seen = models.BooleanField(default=False)
 	sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="noti_from_user",null=True)
+	hidden = models.BooleanField(default=False)
 
 # class UserNotification(Notification):
 # 	sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="noti_from_user")

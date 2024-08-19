@@ -73,7 +73,7 @@
 <br>
   
   <div class="columns is-mobile is-centered">
-  <div class="column is-half">
+  <div class="column is-half" id="posts-container">
 
 {% for item in post_items %}
   <div class="card">
@@ -161,13 +161,6 @@
 
       </div>
 
-
-
-      <!-- <button class="comment-button">
-        <i class="far fa-comment"></i>
-      </button> -->
-<!-- 
-      <p>{{ item.post_item.likes }} Likes</p>   -->
     </div>
 
 </div>
@@ -183,7 +176,86 @@
 
 </div>
 </div>
+
+<div id="loading" style="display: none;">Loading...</div>
+
 <script>
+
+// FOR HANDLE LOADING MORE POSTS AS SCROLLING DOWN
+let page = 2;
+let loading = false;
+const postsContainer = document.getElementById('posts-container');
+const loadingIndicator = document.getElementById('loading');
+// const option = JSON.parse(document.getElementById('option-id').textContent);
+function loadMorePosts() {
+    if (loading) return;
+    loading = true;
+    loadingIndicator.style.display = 'block';
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    fetch(`/?page=${page}`, {
+      method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken':csrftoken,
+        },
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.results.forEach(result => {
+          console.log('SUCCESS!');
+            const tempDiv = document.createElement('div');
+            console.log(result.test);
+            console.log(result);
+            tempDiv.innerHTML = result.html;
+            while (tempDiv.firstChild) {
+                postsContainer.appendChild(tempDiv.firstChild);
+            }
+        });
+        // console.log(data.tests);
+        console.log(data.has_next);
+        console.log(page);
+        console.log(data.number);
+        page++;
+        loading = false;
+        loadingIndicator.style.display = 'none';
+
+        if (!data.has_next) {
+            window.removeEventListener('scroll', handleScroll);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loading = false;
+        loadingIndicator.style.display = 'none';
+    });
+}
+
+function handleScroll() {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+        loadMorePosts();
+    }
+}
+
+window.addEventListener('scroll', handleScroll);
+
+
         function toggleLike(button) {
           const postId = button.getAttribute('data-post-id');
           const url = button.getAttribute('data-url');

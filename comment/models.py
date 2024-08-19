@@ -61,27 +61,31 @@ def user_del_comment_post(sender, instance, **kwargs):
 	post.comment_count = post.comment_count-1
 	post.save()
 
-	notify = Notification.objects.filter(post=post, sender=sender, notification_type=2)
-	count = 0
-	for item in list(notify):
-		if item.is_seen == False:
-			count+=1
-	
-	notify.delete()
+	try:
+		notify = Notification.objects.filter(post=post, sender=sender, notification_type=2).latest('date')
+		count = 0
+		for item in list(notify):
+			if item.is_seen == False:
+				count+=1
+		
+		notify.hidden = True
+		notify.save()
 
-	if count > 0:
+		if count > 0:
 
-		# Send real-time notification for comment deletion if the comment is not seen yet => discount count_notification
-		channel_layer = get_channel_layer()
-		async_to_sync(channel_layer.group_send)(
-			f"user_{post.user.id}",  # Notify the post owner
-			{
-				"type": "send_notification",
-				"message": {
-					"action": "delete_comment",
-					"count":count,
+			# Send real-time notification for comment deletion if the comment is not seen yet => discount count_notification
+			channel_layer = get_channel_layer()
+			async_to_sync(channel_layer.group_send)(
+				f"user_{post.user.id}",  # Notify the post owner
+				{
+					"type": "send_notification",
+					"message": {
+						"action": "delete_comment",
+						"count":count,
 
+					}
 				}
-			}
-		)
-
+			)
+	except:
+		# in this case, the post is deleted => all comments are deleted => trigger user_del_comment_post
+		print('All related comments are deleted')

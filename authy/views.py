@@ -76,7 +76,9 @@ def showUser(request):
 	# 	return HttpResponse(template.render(context, request))
 
 
-from django.db.models import Case, When, BooleanField, Value, Q
+from django.db.models import Case, When, Value, BooleanField, Exists, OuterRef
+from django.db.models.functions import Coalesce
+
 class UserProfileView(TemplateView):
 
 	template_name = 'profile.html'
@@ -102,31 +104,24 @@ class UserProfileView(TemplateView):
 				posts = Post.objects.filter(user=user)
 			else:
 				# posts = [post for post in Post.objects.filter(user=user).order_by('-posted') if post.can_access(self.request.user.id)]
-
 				user_id = self.request.user.id
-				posts = Post.objects.annotate(
-							can_access=Case(
-								# If the post's user ID matches the given user ID
-								When(user__id=user_id, then=Value(True)),
-								
-								# If the post's privacy is 'public'
-								When(privacy='public', then=Value(True)),
-								
-								# If the post's privacy is 'followers' and the user is following the post's owner
-								When(
-									Q(privacy='followers') & 
-									Q(user__follower__following__id=user_id), 
-									then=Value(True)
-								),
-								
-								# Default case, if none of the above conditions are met
-								default=Value(False),
-								output_field=BooleanField()
-							)
-						).filter(can_access=True).filter(user=user)
+				# Subquery to check if the user is following the post's owner
+				following_subquery = Follow.objects.filter(
+					follower_id=user_id,
+					following_id=OuterRef('user_id')
+				)
+
+				posts = Post.objects.filter(user=user).annotate(
+					can_access=Case(
+						When(privacy='public', then=Value(True)),
+						When(privacy='followers', then=Exists(following_subquery)),
+						default=Value(False),
+						output_field=BooleanField()
+					)
+				).filter(can_access=True)
 
         # Profile info box
-		posts_count = Post.objects.filter(user=user).count()
+		posts_count =posts.count()
 		following_count = Follow.objects.filter(follower=user).count()
 		followers_count = Follow.objects.filter(following=user).count()
 

@@ -112,20 +112,24 @@
 {{ option|json_script:"option-id" }}
 <script>
 
-let page = 1;
+let page = 2;
 let loading = false;
 const postsContainer = document.getElementById('posts-container');
 const loadingIndicator = document.getElementById('loading');
 const option = JSON.parse(document.getElementById('option-id').textContent);
+
 function loadMorePosts() {
     if (loading) return;
     loading = true;
     loadingIndicator.style.display = 'block';
 
-    fetch(`/function_newsfeed/${option}?page=${page + 1}/`, {
+    fetch(`/function_newsfeed/${option}?page=${page}`, {
+      method: 'GET',
         headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken':getCookie('csrftoken'),
+        },
+        credentials:'include',
     })
     .then(response => response.json())
     .then(data => {
@@ -136,7 +140,9 @@ function loadMorePosts() {
                 postsContainer.appendChild(tempDiv.firstChild);
             }
         });
-
+        console.log('SUCCESS');
+        console.log(data.has_next);
+        console.log(page);
         page++;
         loading = false;
         loadingIndicator.style.display = 'none';

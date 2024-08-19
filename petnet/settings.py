@@ -25,13 +25,15 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['petnet.local']
+# ALLOWED_HOSTS = ['petnet.local','localhost', '127.0.0.1']
 ALLOWED_HOSTS =[]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_tools_stats',
+    'django_nvd3',
     'daphne',
     'channels',
     'django.contrib.admin',
@@ -115,7 +117,12 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": "petnet.local:11211",
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
