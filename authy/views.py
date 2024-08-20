@@ -87,7 +87,7 @@ class UserProfileView(TemplateView):
 
 		context.update({
 			'profile': profile,
-			'posts': posts_paginator,
+			'posts': posts,
 			'following_count': following_count,
 			'followers_count': followers_count,
 			'posts_count': posts_count,

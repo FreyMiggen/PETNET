@@ -167,7 +167,8 @@ CHANNEL_LAYERS = {
     }
 }
 
-
+# Specify the beat scheduler
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 
 # settings.py

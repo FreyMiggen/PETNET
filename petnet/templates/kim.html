@@ -4,29 +4,7 @@
 <section class="section">
     <div class="container">
         <div class="columns">
-            <div class="column is-half">
-                <div id="find-function" class="card">
-                    <div class="card-content">
-                        <div id="similar-task">
-                            <h2 class="title is-4">Chạy tìm kiếm ngay</h2>
-                            <div class="field">
-                                <div class="control">
-                                    <button class="button is-primary is-fullwidth" id="runSimilarButton" data-post-id="{{ post_id }}">
-                                        <span class="icon">
-                                            <i class="fas fa-search"></i>
-                                        </span>
-                                        <span>Tìm kiếm</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="similarResults" style="display: none;">
-                                <h3 class="title is-5">Kết quả tìm kiếm (độ trùng khớp giảm dần):</h3>
-                                <ol id="similarPostsList"></ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="column is-half">
                 <div id="schedule-task" class="card">
@@ -135,111 +113,13 @@
             </div>
         </div>
       
-        <div class="column is-full mt-6">
-            <div class="card" id="find-result">
-                <div class="card-content">
-                    <h2 class="title is-4">Lịch sử kết quả tìm kiếm</h2>
-                    <div class="content">
-                        <h3 class="title is-6">Độ trùng khớp cao:</h3>
-                        <ul>
-                            {% for item in perfect_candidates %}
-
     
-                            
-                            <li>
-                                <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
-                                <a href = "{{ item.url }}">Link so sánh</a><br>
-                                Điểm sai lệch: {{ item.match.score|floatformat:2 }}<br>
-                                Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
-
-                            </li>
-
-                            {% empty %}
-                            <h4>No perfect match!</h4>
-                            {% endfor %}
-
-
-                        </ul>
-
-                        <h3 class="title is-6">Độ trùng khớp thấp:</h3>
-                        <ul>
-                            {% for item in match_candidates %}
-
-                            <li>
-
-                                <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
-                                <a href = "{{ item.url }}">Link so sánh</a><br>
-                                Điểm sai lệch: {{ item.match.score|floatformat:2 }}<br>
-                                Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
-                         
-
-                            </li>
-
-                            {% empty %}
-                            <h4>Bạn chưa chạy tìm kiếm</h4>
-                            {% endfor %}
-
-
-                        </ul>
-
-
-                            <!-- More results can be added here -->
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </section>
 {{ post_id|json_script:"lostpost-id" }}
 
 <script>
 
-    document.addEventListener('DOMContentLoaded', function() {
-    const runSimilarButton = document.getElementById('runSimilarButton');
-    const similarResults = document.getElementById('similarResults');
-    const similarPostsList = document.getElementById('similarPostsList');
-
-    if (runSimilarButton) {
-        runSimilarButton.addEventListener('click', function() {
-            const postId = this.getAttribute('data-post-id');
-            runSimilarButton.disabled = true;
-            runSimilarButton.textContent = 'Searching...';
-            
-            fetch(`/post/find-similar/${postId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    similarPostsList.innerHTML = '';
-                    data.forEach(item => {
-                        const li = document.createElement('li');
-
-                        li.innerHTML= `
-                            <a href ="${item.url}">Link</a><br>
-                            Score: ${item.score}
-                            Posted: ${item.posted}<br>
-                            Username: ${item.username}<br>
-                        `;
-                        // const a = document.createElement('a');
-                        // a.href = post.url;
-                        // a.textContent = post.title || 'Similar Post'; // Use post title if available, otherwise use 'Similar Post'
-                        // a.target = '_blank'; // Open the link in a new tab
-                        // li.appendChild(a);
-                        similarPostsList.appendChild(li);
-                    });
-                    similarResults.style.display = 'block';
-                    runSimilarButton.disabled = false;
-                    runSimilarButton.textContent = 'Chạy tìm kiếm ngay';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    similarResults.innerHTML = '<p>An error occurred while searching for similar posts.</p>';
-                    similarResults.style.display = 'block';
-                    runSimilarButton.disabled = false;
-                    runSimilarButton.textContent = 'Run Similar Search';
-                });
-        });
-    }
-});
 
 document.addEventListener('DOMContentLoaded',()=>{
     const lostPostId = JSON.parse(document.getElementById('lostpost-id').textContent);
@@ -250,7 +130,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     // const initialStatus = checkbox.checked;
     if (saveInfo){
         saveInfo.addEventListener('click',()=>{
-            event.preventDefault();
             console.log('SAVE INFORMATION BUTTON HIT!');
             var check = "no";
                 if (checkbox.checked){
@@ -288,24 +167,11 @@ document.addEventListener('DOMContentLoaded',()=>{
                 console.log('Error:', error);
                 
             });
-            return false;
+
+
+
+            
         })
-    }
-
-
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
-        }
-      }
-      return cookieValue;
     }
 })
 

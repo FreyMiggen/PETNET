@@ -24,20 +24,58 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from authy.models import Cat
+import mimetypes
+from email.mime.image import MIMEImage
+
+# send_mail(
+#     subject='Test Email from Django',
+#     message='This is a test email sent from Django.',
+#     from_email=settings.DEFAULT_FROM_EMAIL,  # or use 'your-email@example.com'
+#     recipient_list=['kimanhthpt99@gmail.com'],
+#     fail_silently=False,
+# )
 
 # receive a user_id and a list of foundpost_id
-def sendEmailtoUser(lostpost_id,foundpost_ids):
+def sendEmailtoUser(foundpost_id,lostpost_id,score):
 
-    posts = FoundPost.objects.filter(id__in=foundpost_ids)  # Get your posts
+    post = FoundPost.objects.get(id=foundpost_id)  # Get your post
+    
     subject = 'We found a match for your Lost Post in Petnet! Check right away'
     from_email = settings.EMAIL_HOST_USER
-    recipient_list =   LostPost.objects.get(id=lostpost_id).email# List of recipients 
-
-    html_content = render_to_string('email_template.html', {'posts': posts})
+    recipient_list =   LostPost.objects.get(id=lostpost_id).email # List of recipients 
+    print("RECEIVE EMAIL:", [recipient_list])
+    html_content = render_to_string('email_template.html', {'post': post,'score':score})
     text_content = strip_tags(html_content)
 
-    email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+    email = EmailMultiAlternatives(subject, text_content, from_email, [recipient_list])
     email.attach_alternative(html_content, "text/html")
+
+    # Attach images with Content-ID
+    if post.content.exists():
+        # Assuming post.content.all() returns a list of image objects with a .url attribute
+        image1_path = post.content.all()[0].file.path  # Assuming the path attribute gives the local file path
+
+        if post.fullbody_img.exists():
+            image2_path = post.fullbody_img.all()[0].file.path
+        else:
+            image2_path = post.content.all()[1].file.path  # Same for the second image
+        
+        with open(image1_path, 'rb') as img:
+            img_data = img.read()
+            mime_type, _ = mimetypes.guess_type(image1_path)
+            mime_image = MIMEImage(img_data, _subtype=mime_type.split('/')[-1])
+            image_name = 'image1'
+            mime_image.add_header('Content-ID', f'<{image_name}>')
+            email.attach(mime_image)
+
+        with open(image2_path, 'rb') as img:
+            img_data = img.read()
+            mime_type, _ = mimetypes.guess_type(image2_path)
+            mime_image = MIMEImage(img_data, _subtype=mime_type.split('/')[-1])
+            image_name = 'image2'
+            mime_image.add_header('Content-ID', f'<{image_name}>')
+            email.attach(mime_image)
+
     email.send()
 
 @shared_task()
@@ -339,15 +377,16 @@ def retrievePost(lost=True):
     embeddings = []
     ids = []
     for post in posts:
-        embedding = read_file(post.embedding.path)
-        embeddings.append(embedding)
-        ids.append(post.id)
+        if post.embedding:
+            embedding = read_file(post.embedding.path)
+            embeddings.append(embedding)
+            ids.append(post.id)
 
     # print(len(embeddings))
     # print(len(embeddings[0]))
 
-    embeddings = np.vstack(embeddings) # of shape (n,32)
-    ids = np.array(ids)
+    embeddings = np.stack(embeddings,axis=0) # of shape (n,3,32)
+    ids = np.array(ids) # of shape (n,)
 
     return embeddings,ids
 
@@ -355,59 +394,95 @@ def retrievePost(lost=True):
 def runAllSimilar():
     """
     Run all Similar Tasks for Lost Post that has schedule = True
+    Given A: lost matrix of shape (m,3,32)
+          B: found matrix of shape (n,3,32)
+
+    Compute matrix C of shape (m,n,3,3) where
+    C[i][j][k][h] is Euclidean distance between A[i][k] and B[j][h]
     """
     A,lost_ids = retrievePost(lost=True)
     B,found_ids = retrievePost(lost=False)
-    print('CHECK POINT!')
-    print(A.shape)
-    print(B.shape)
+    print('RUNNING MATCH ALL TASK!')
+    print("A shape: ", A.shape)
+    print("B shape: ", B.shape)
 
-    A_expanded = A[:, np.newaxis, :]  # shape (m, 1, 32)
-    B_expanded = B[np.newaxis, :, :]  # shape (1, n, 32)
+    # Step 1: expand dimension
 
-    # Step 2: Compute squared differences
-    squared_diff = (A_expanded - B_expanded) ** 2  # shape (m, n, 32)
+    A_exp = A[:, np.newaxis, :, np.newaxis, :]  # shape (m, 1, 3, 1, 32)
+    B_exp = B[np.newaxis, :, np.newaxis, :, :]  # shape (1, n, 1, 3, 32)
 
-    # Step 3: Sum squared differences along the last axis
-    sum_squared_diff = np.sum(squared_diff, axis=2)  # shape (m, n)
+
+    # Step 2: Compute the squared differences
+    # Resulting shape: (m, n, 3, 3, 32)
+    diff = A_exp - B_exp
+
+    # Step 3: Square the differences and sum over the last axis (32)
+    # Resulting shape: (m, n, 3, 3)
+    squared_distances = np.sum(diff ** 2, axis=-1)
 
     # Step 4: Take the square root to get the Euclidean distances
-    C = np.sqrt(sum_squared_diff)  # shape (m, n)
-    
-    # Step 5: For each row in C, take indices of 5 entries that has smallest value
-    indices_of_smallest = np.argsort(C, axis=1)[:, :5] # of shape (m,5)
+    # Resulting shape: (m, n, 3, 3)
+    C = np.sqrt(squared_distances)
 
-    # Extract the smallest values using advanced indexing
-    smallest_values = np.take_along_axis(C, indices_of_smallest, axis=1)
+    # Step 5: Flat C to (m,n,9). From D[i][j][0] -> D[i][j][8]: distance between a vector from A[i] and B[j]
+    # M[i][j] is the smallest euclidean distance between one vector of A[i] and B[j]
+    m,n = C.shape[0],C.shape[1]
+    D = np.reshape(C,(m,n,9))
+    M = np.min(D,-1) # of shape (m,n)
 
-    # Step 6: Create MatchCandidateHistory
-    for i in range(len(indices_of_smallest)):
-        id = lost_ids[i]
-        lostpost = LostPost.objects.get(id=id)
-        
-        match = CandidateMatch.objects.create(user=lostpost.user,lostpost=lostpost)
-        for post_idx in indices_of_smallest[i]:
-            found_id = found_ids[post_idx]
-
-            found = FoundPost.objects.get(id=found_id)
-            match.matched.add(found)
-    
+    # Step 6: Take all entries that is below threshold
     threshold = 0.5
 
+    perfect_indices = np.argwhere(M<=threshold) # a 2D list where each row is the position of the value that satisfies
 
-    # Step 7: For each lost post, find all found posts within the threshold
-    matched_dict = {}
-    for i in range(C.shape[0]):
+    for i in range(len(perfect_indices)):
+        lost_id_idx = perfect_indices[i][0]
+        found_id_idx = perfect_indices[i][1]
+        lost_id = lost_ids[lost_id_idx]
+        found_id = found_ids[found_id_idx]
+
+        lost = LostPost.objects.get(id=lost_id)
+        found = FoundPost.objects.get(id=found_id)
+
+        # create a CandidateMatch
+        match, created = CandidateMatch.objects.get_or_create(lostpost=lost,foundpost=found,user=lost.user)
+        
+        match.threshold = True
+        match.score = M[perfect_indices[i][0]][perfect_indices[i][1]]
+        match.save()
+
+        # send email
+        if lost.email and lost.schedule:
+            sendEmailtoUser(found_id,lost_id,match.score)
+
+
+    
+    # Step 7: Take up to 5 results for each lost post 
+
+    min_indices = np.argsort(M,axis=-1)
+    
+    for i in range(m):
         lost_id = lost_ids[i]
-        within_threshold = np.where(C[i] <= threshold)[0]
-        matched_found_ids = [found_ids[idx] for idx in within_threshold]
-        matched_dict[lost_id] = matched_found_ids
+        lost = LostPost.objects.get(id=lost_id)
+        for j in range(5):
+            found_id_idx = min_indices[i][j]
+            found_id = found_ids[found_id_idx]
+            found = FoundPost.objects.get(id=found_id)
+
+            match,created = CandidateMatch.objects.get_or_create(lostpost=lost,foundpost=found,user=lost.user)
+            if created:
+                match.score = M[i][j]
+                match.threshold = False
+                match.save()
+    
+    # Step 8: Send email of perfect match for lost.user with email registered
+    
+    
 
 
-    for lost_id in matched_dict.keys():
-        lostpost = LostPost.objects.get(id=lost_id)
-        if lostpost.email:
-            sendEmailtoUser(lost_id,matched_dict[lost_id])
+
+  
+            # sendEmailtoUser(lost_id,matched_dict[lost_id])
 
 from .models import Post, Stream
 from django.utils import timezone

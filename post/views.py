@@ -204,8 +204,9 @@ def NewPost(request):
 			cats = form.cleaned_data.get('cats')
 			tags_form = form.cleaned_data.get('tags')
 			tags_list = list(tags_form.split(','))
+			privacy = form.cleaned_data.get('privacy')
 
-			post = Post.objects.create(caption=caption,user=user)
+			post = Post.objects.create(caption=caption,user=user,privacy=privacy)
 
 			for tag in tags_list:
 				slug = slugify(tag)
@@ -779,6 +780,35 @@ def updateSchedule(request, post_id):
 		lostpost.schedule = True
 	else:
 		lostpost.schedule = False
+
+	lostpost.save()	
+	return JsonResponse({'success': True})
+
+@login_required
+@require_POST
+def updateEmailandSchedule(request,post_id):
+		
+	data = json.loads(request.body)
+	checked = data.get('checked')
+	email = data.get('email')
+	lostpost = get_object_or_404(LostPost, id=post_id)
+
+	try:
+		validate_email(email)
+		
+		lostpost.email = email
+		lostpost.save()  # Don't forget to save the changes
+		
+		
+
+	except forms.ValidationError:
+		return JsonResponse({'success':False,'message':"Invalid Email Address!"})
+
+	if checked == 'yes':
+		lostpost.schedule = True
+	else:
+		lostpost.schedule = False
+
 
 	lostpost.save()	
 	return JsonResponse({'success': True})
