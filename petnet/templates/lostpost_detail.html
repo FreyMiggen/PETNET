@@ -80,7 +80,7 @@
         </div>
         <div class = "similar-task">
             <!--  Create button for user to Run matchCat. Only allow user that create this very post to run it -->
-            {% if check %}
+            {% if check and post.embedding %}
             <button class="button is-primary is-light" id="runSimilarButton"  data-url="{% url 'post:find-cat' post.id %}" data-post-id="{{ post_id }}">Tìm mèo lạc </button>
             {% endif %}
   

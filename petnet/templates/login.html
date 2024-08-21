@@ -21,8 +21,8 @@
 <body>
     <section class="section">
         <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-half">
+            <div class="columns is-mobile has-text-centered">
+                <div class="column is-half is-offset-one-quarter">
                     <div class="card">
                         <div class="card-content">
                             <form method="post" class="login-form">
@@ -30,23 +30,27 @@
                                 <h3 class="title is-3 has-text-centered">Login</h3>
 
                                 <div class="field">
-                                    <label class="label">Email</label>
-                                    <div class="control has-icons-left">
-                                        {{ form.username }}
+                                    <p class="control has-icons-left">
+                                    <label class="label is-medium">Email</label>
+                                        <input class="input is-medium" name="{{ form.username.name }}" id="{{ form.username.id}}">
+                                        <!-- {{ form.username }} -->
                                         <span class="icon is-small is-left">
                                             <i class="fas fa-envelope"></i>
                                         </span>
-                                    </div>
+                                    </p>
+                                    
                                 </div>
 
                                 <div class="field">
-                                    <label class="label">Password</label>
-                                    <div class="control has-icons-left">
-                                        {{ form.password }}
+                                    <p class="control has-icons-left">
+                                    <label class="label is-medium">Password</label>
+                                    <input class="input is-medium" name="{{ form.password.name }}" id="{{ form.password.id}}" type="password">
+                                        <!-- {{ form.password }} -->
                                         <span class="icon is-small is-left">
                                             <i class="fas fa-lock"></i>
                                         </span>
-                                    </div>
+                                    </p>
+                                
                                 </div>
 
                                 {% if form.errors %}

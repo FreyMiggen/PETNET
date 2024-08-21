@@ -656,10 +656,8 @@ def edit_post(request, post_id):
 				cats = form.cleaned_data.get('cats')
 				edited_post.cats.clear()
 				for cat in cats:
-
 					post.cats.add(cat)
 	
-
 				edited_post.save()
 				
 			
@@ -841,22 +839,51 @@ def matchView(request):
 
 	else:
 		return redirect('post:lostpostdetails',post_id=lost_id)
-		
-        #     match = Match.objects.create(
-        #         lost=lost_post,
-        #         found=found_post,
-        #         match_confirmed=True
-        #     )
-        #     match.save()
-        #     return redirect('match-confirmation')
-        # else:
-        #     return redirect('match-rejection')
 
-    # lost_post = Lost.objects.first()
-    # found_post = Found.objects.first()
-    # context = {
-    #     'posts': [lost_post, found_post],
-    #     'lost_id': lost_post.id,
-    #     'found_id': found_post.id
-    # }
-    # return render(request, 'match.html', context)
+from .forms import CatLostPost 
+from authy.models import Cat, CatImageStorage, CatFullBodyImage
+from django.http import HttpResponseForbidden
+@login_required()
+def createCatLostPost(request,cat_id):
+	cat = get_object_or_404(Cat,id=cat_id)
+	if cat.user != request.user:
+		return HttpResponseForbidden('You are not authorized to do this action!')
+	else:
+		if request.method == 'POST':
+			form = CatLostPost(request.POST,cat=cat)
+			if form.is_valid():
+				geotag = form.cleaned_data.get('geotag')
+				lost_time = form.cleaned_data.get('lost_time')
+				caption = form.cleaned_data.get('caption')
+
+				post = LostPost.objects.create(user=cat.user,cat=cat,
+								   geotag=geotag,lost_time=lost_time,caption=caption,
+								   embedding = cat.embedding_vector)
+
+
+				# remember to use embedding file of cat for post
+				
+				# post.embedding = cat.embedding_vector
+				face_chosen_content = form.cleaned_data.get('face_chosen_content', [])
+				face_chosen_files = CatImageStorage.objects.filter(id__in=face_chosen_content)
+				for file in face_chosen_files:
+					newfile = PostFileContent.objects.create(file=file.pic,user=cat.user)
+					post.content.add(newfile)
+
+				fullbody_chosen_content = form.cleaned_data.get('fullbody_chosen_content',[])
+				fullbody_chosen_files = CatFullBodyImage.objects.filter(id__in=fullbody_chosen_content)
+				for file in fullbody_chosen_files:
+					newfile = PostFileContent.objects.create(file=file.pic,user=cat.user)
+					post.fullbody_img.add(newfile)
+
+				# post.save()
+			
+				return redirect('post:lostpostdetails',post_id=post.id)
+		else:
+			form = CatLostPost(cat=cat)
+			return render(request,'cat_lostpost.html',{'requesting_profile':request.user.profile,
+											  'cat':cat,'form':form})
+			
+	
+				
+

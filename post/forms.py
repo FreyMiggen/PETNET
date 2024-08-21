@@ -62,6 +62,7 @@ class NewLostPostForm(forms.ModelForm):
 		if commit:
 			instance.save()
 		return instance
+	
 	def clean_lost_time(self):
 		lost_time = self.cleaned_data.get('lost_time')
 		if lost_time:
@@ -94,14 +95,6 @@ class NewFoundPostForm(forms.ModelForm):
 		)
 	
 
-	# found_time = forms.DateTimeField(
-	# 	widget = forms.DateInput(
-	# 		attrs = {
-	# 			'class':'form-control',
-	# 			'type':'datetime-local',
-	# 		}),
-	# 		initial='2024-08-13'	
-	# )
 	class Meta:
 		model = FoundPost
 		fields = ('content', 'caption','geotag','fullbody_img','found_time',)
@@ -295,8 +288,8 @@ class LostPostEditForm(forms.ModelForm):
 		
 
 	class Meta:
-		model = Post
-		fields = ['caption', 'cats','lost_time','geotag']
+		model = LostPost
+		fields = ['caption','lost_time','geotag']
 
 	def __init__(self, *args, **kwargs):
 		user = kwargs.pop('user', None)
@@ -340,64 +333,82 @@ class LostPostEditForm(forms.ModelForm):
 		return lost_time
 
 
-# class NewLostPostForm(forms.ModelForm):
-# 	cat = forms.ModelChoiceField(
-# 		queryset=Cat.objects.none(),
-# 		widget=forms.Select(attrs={
-# 			'class': 'form-control',
-# 			'style': 'width: 100%; display: inline-block;',
-# 			'id': 'cat-select'
-# 		}),
-# 		required=False,
-# 		help_text="Optional: Select a cat to associate with this post."
-# 	)
-# 	content = MultipleFileField(
-# 		label='Add face images to your post',
-# 		required=False
-# 	)
+class CatLostPost(forms.ModelForm):
+	caption = forms.CharField(
+		widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your caption here...','class':'textarea',}),
+		max_length=1500,
+		required=True,
+	)
 
-# 	fullbody_img = MultipleFileField(
-# 		label='Add full body images to your post',
-# 		required=False
-# 	)
-# 	cat_images = forms.MultipleChoiceField(
-# 		choices=[],
-# 		widget=forms.CheckboxSelectMultiple(attrs={'id': 'cat-images'}),
-# 		required=False,
-# 		label="Select cat images to include"
-# 	)
-# 	caption = forms.CharField(
-# 		widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your caption here...', 'class': 'textarea'}),
-# 		max_length=1500,
-# 		required=True,
-# 	)
-# 	geotag = forms.CharField(widget=forms.TextInput(attrs={'class': 'input is-medium'}), required=True)
+	lost_time = forms.DateTimeField(
+		widget = forms.DateInput(
+			attrs = {
+				'class':'form-control',
+				'type':'datetime-local',
+			}),
+		input_formats=['%Y-%m-%dT%H:%M'],  # Format for datetime-local input
+        initial=timezone.now().strftime('%Y-%m-%dT%H:%M')
+				
+	)
 
-# 	lost_time = forms.SplitDateTimeField(
-# 		widget=forms.SplitDateTimeWidget(
-# 			date_attrs={'type': 'date'},
-# 			time_attrs={'type': 'time'},
-# 		),
-# 		label='Lost Date and Time',
-# 		required=False
-# 	)
 
-# 	class Meta:
-# 		model = LostPost
-# 		fields = ('cats', 'content', 'caption', 'geotag', 'fullbody_img', 'lost_time',)
+	face_chosen_content = forms.MultipleChoiceField(
+		required=False,
+		widget=forms.CheckboxSelectMultiple,
+		choices=[],  # We'll set these dynamically in __init__
+	)
 
-# 	def __init__(self, *args, **kwargs):
-# 		user = kwargs.pop('user', None)
-# 		super(NewLostPostForm, self).__init__(*args, **kwargs)
-# 		if user is not None:
-# 			self.fields['cats'].queryset = Cat.objects.filter(user=user)
 
-# 	def clean(self):
-# 		cleaned_data = super().clean()
-# 		content = cleaned_data.get('content')
-# 		cat_images = cleaned_data.get('cat_images')
+
+	fullbody_chosen_content = forms.MultipleChoiceField(
+		required=False,
+		widget=forms.CheckboxSelectMultiple,
+		choices=[],  # We'll set these dynamically in __init__
+	)
+
+	geotag = forms.CharField(widget=forms.TextInput(attrs={'class': 'input is-medium'}), required=True)
+
+
+	class Meta:
+		model = LostPost
+		fields = ['caption','lost_time','geotag']
+
+	def __init__(self, *args, **kwargs):
+		# user = kwargs.pop('user', None)
+		cat = kwargs.pop('cat',None)
+
+		super().__init__(*args, **kwargs)
+
+		if cat:
+			self.fields['face_chosen_content'].choices = [
+				(content.id, f"Use {content.pic.name}")
+				for content in cat.images.all()
+			]
+
+			self.fields['fullbody_chosen_content'].choices = [
+				(content.id, f"Delete {content.pic.name}")
+				for content in cat.fullbody_images.all()
+			]
+
+	def clean(self):
+		cleaned_data = super().clean()
 		
-# 		if not content and not cat_images:
-# 			raise forms.ValidationError("You must either upload new images or select existing cat images.")
+		face_chosen_content = cleaned_data.get('face_chosen_content')
+
 		
-# 		return cleaned_data
+		fullbody_chosen_content = cleaned_data.get('fullbody_chosen_content')
+
+		if not face_chosen_content:
+			forms.ValidationError("Bạn phải chọn ít nhất 1 ảnh khuôn mặt!")
+
+		return cleaned_data
+	
+	
+	def clean_lost_time(self):
+		lost_time = self.cleaned_data.get('lost_time')
+		if lost_time:
+			if timezone.is_naive(lost_time):
+				return timezone.make_aware(lost_time,timezone.get_current_timezone())
+			else:
+				return lost_time
+		return lost_time

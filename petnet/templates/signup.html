@@ -5,11 +5,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hello Bulma!</title>
+    <title>PetNet</title>
+    <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
     <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   </head>
   <body>
 
@@ -32,7 +36,7 @@
               <label class="label is-medium">Username</label>
                 {{ form.username }}
                 <span class="icon is-small is-left">
-            <i class="fas fa-lock"></i>
+            <i class="fa-solid fa-user"></i>
           </span>
         </p>
           </div>
@@ -42,7 +46,7 @@
               <label class="label is-medium">Email</label>
                 {{ form.email }}
                 <span class="icon is-small is-left">
-            <i class="fas fa-lock"></i>
+            <i class="fas fa-envelope"></i>
           </span>
         </p>
           </div>

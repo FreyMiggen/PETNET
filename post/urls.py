@@ -1,6 +1,6 @@
 from django.urls import path
 from post.views import index, NewPost, PostDetails, tags, like, favorite,  LostPostDetails, findSimilar,like, comparison,NewFunctionPost,findCat,updateEmail,deletePost,edit_post,edit_lostpost,updateEmailandSchedule
-
+from post.views import createCatLostPost
 app_name = 'post'
 urlpatterns = [
    	path('', index, name='index'),
@@ -20,6 +20,7 @@ urlpatterns = [
      path('delete-post/<uuid:post_id>/',deletePost,name='delete-post'),
      path('edit-post/<uuid:post_id>/',edit_post,name='edit-post'),
      path('edit-lostpost/<uuid:post_id>/',edit_lostpost,name='edit-lost-post'),
+     path('cat-lost-post/<int:cat_id>/',createCatLostPost,name='cat-lost-post'),
      path('lost-found-post/<option>/',NewFunctionPost,name='new-function-post'),
     
 ]

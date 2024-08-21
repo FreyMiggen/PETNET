@@ -14,6 +14,33 @@ from django.dispatch import receiver
 
 # from .tasks import add_face_to_db, test_ce
 # Create your models here.
+
+
+# def user_directory_path(instance,filename):
+    
+#     fol = 'users/user_{0}/'.format(instance.user.id)
+#     fullpath = os.path.join(settings.MEDIA_ROOT,fol)
+#     if not os.path.exists(fullpath):
+#         profile_pic_name = 'users/user_{0}/profile_0_{1}'.format(instance.user.id,filename)
+#     else:
+#         count = len(os.listdir(fullpath))
+#         profile_pic_name = 'users/user_{0}/profile_{1}_{2}'.format(instance.user.id,count,filename)
+    
+#     return profile_pic_name
+# Create your models here.
+
+
+def user_directory_path(instance, filename):
+    	# file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+	profile_pic_name = 'user_{0}/profile.jpg'.format(instance.user.id)
+	full_path = os.path.join(settings.MEDIA_ROOT, profile_pic_name)
+	
+
+	if os.path.exists(full_path):
+		os.remove(full_path)
+
+	return profile_pic_name
+
 class CustomUserManager(UserManager):
     def _create_user(self,email,password,**extra_fields):
         if not email:
@@ -42,7 +69,7 @@ class CustomUserManager(UserManager):
 class User(AbstractBaseUser,PermissionsMixin):
 
     email = models.EmailField(blank=True,default='',unique=True)
-    name = models.CharField(max_length=150,blank=True,default='')
+    name = models.CharField(max_length=150,blank=True,default='',unique=True)
 
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -64,32 +91,7 @@ class User(AbstractBaseUser,PermissionsMixin):
         return self.name or self.email.split('@')[0]
     def __str__(self):
         return self.name or self.email.split('@')[0]
-
-def user_directory_path(instance,filename):
     
-    fol = 'users/user_{0}/'.format(instance.user.id)
-    fullpath = os.path.join(settings.MEDIA_ROOT,fol)
-    if not os.path.exists(fullpath):
-        profile_pic_name = 'users/user_{0}/profile_0_{1}'.format(instance.user.id,filename)
-    else:
-        count = len(os.listdir(fullpath))
-        profile_pic_name = 'users/user_{0}/profile_{1}_{2}'.format(instance.user.id,count,filename)
-    
-    return profile_pic_name
-# Create your models here.
-
-
-def user_directory_path(instance, filename):
-    	# file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-	profile_pic_name = 'user_{0}/profile.jpg'.format(instance.user.id)
-	full_path = os.path.join(settings.MEDIA_ROOT, profile_pic_name)
-	
-
-	if os.path.exists(full_path):
-		os.remove(full_path)
-
-	return profile_pic_name
-
 # Create your models here.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

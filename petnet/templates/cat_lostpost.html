@@ -1,0 +1,88 @@
+<!-- templates/edit_post.html -->
+{% extends 'base_test.html' %}  <!-- Assuming you have a base template -->
+
+{% block content %}
+
+<div class="columns is-mobile has-text-centered">
+    <div class="column is-8 is-offset-2">
+  
+      <div class="card">
+      <div class="card-content">
+
+<form method="post" >
+    <h3 class="title is-1">Bài đăng Tìm mèo lạc cho {{ cat.name }}:</h3>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    
+
+    <div class="field">
+        {{ form.caption.errors }}
+        <label class="label is-medium">Miêu tả:</label>
+        {{ form.caption }}
+    </div>
+
+    <div class="field">
+      {{ form.lost_time.errors }}
+      <label class="label is-medium">Thời gian lạc:</label>
+      {{ form.lost_time }}
+  </div>
+
+  <div class="field">
+    {{ form.geotag.errors }}
+    <label class="label is-medium">Địa điểm lạc:</label>
+    {{ form.geotag }}
+  </div>
+      
+      <div class="field">
+        <label class="label is-medium">Ảnh toàn thân:</label>
+        {{ form.fullbody_chosen_content.errors }}
+        <div class="columns is-multiline">
+          {% for content in cat.fullbody_images.all %}
+            <div class="column is-3">
+              <div class="card">
+                <div class="card-image">
+                  <figure class="image is-4by3">
+                    <img src="{{ content.pic.url }}" alt="Post image" style="object-fit: cover;">
+                  </figure>
+                </div>
+                <div class="card-content">
+                  <label class="checkbox">
+                    <input type="checkbox" name="{{ form.fullbody_chosen_content.name }}" value="{{ content.id }}">
+                    Use
+                  </label>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    <div class="field">
+      <label class="label is-medium">Ảnh khuôn mặt:</label>
+      {{ form.face_chosen_content.errors }}
+      <div class="columns is-multiline">
+        {% for content in cat.images.all %}
+          <div class="column is-3">
+            <div class="card">
+              <div class="card-image">
+                <figure class="image is-4by3">
+                  <img src="{{ content.pic.url }}" alt="Post image" style="object-fit: cover;">
+                </figure>
+              </div>
+              <div class="card-content">
+                <label class="checkbox">
+                  <input type="checkbox" name="{{ form.face_chosen_content.name }}" value="{{ content.id }}">
+                  Use
+                </label>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+
+    <button type="submit" class="button is-primary">Tạo bài đăng</button>
+</form>
+
+
+{% endblock %}
