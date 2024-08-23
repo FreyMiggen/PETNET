@@ -132,9 +132,8 @@
             Settings
           </a>
           <div class="navbar-dropdown">
-            <a class="navbar-item">Change password</a>
-            <a class="navbar-item">Contact</a>
-            <a class="navbar-item">Report an issue</a>
+            <a class="navbar-item" href="{% url 'authy:change_password' %}">Change password</a>
+            <a class="navbar-item" href="{% url 'authy:submit-feedback' %}">Report an issue</a>
             <hr class="navbar-divider">
             <a href="{% url 'authy:logout' %}" class="navbar-item">Log out</a>
           </div>
@@ -171,7 +170,9 @@
     let delete_array = ['delete_like','delete_follow'];
     if (array.includes(data.action)) {
         updateCountNoti(1);
-        console.log(`New comment on post ${data.post_id} by ${data.comment_user}: ${data.comment_text}`);
+        if (data.action == 'embedding_completed'){
+          console.log('EMBEDDING COMPLETED!');
+        }
         // Update UI to show new notification
     } else if (delete_array.includes(data.action)) {
         // Handle comment deletion notification

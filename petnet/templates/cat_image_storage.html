@@ -209,9 +209,9 @@ body {
 
             {% if cat.embedding_vector %}
         <a class = 'button' id="create-lost-post" href="{% url 'post:cat-lost-post' cat.id %}">Tạo bài đăng Tìm mèo lạc</a>
-            {% else %}
+            
             {% endif %}
-        {% else %}
+        <a class = 'button' href="{% url 'authy:edit-cat' cat.id %}">Sửa thông tin</a>
         {% endif %}
 
 

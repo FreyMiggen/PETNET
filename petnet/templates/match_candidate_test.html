@@ -1,5 +1,6 @@
 {% extends 'base_test.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <section class="section">
     <div class="container">
@@ -149,7 +150,7 @@
                             <li>
                                 <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
                                 <a href = "{{ item.url }}">Link so sánh</a><br>
-                                Điểm sai lệch: {{ item.match.score|floatformat:2 }}<br>
+                                Điểm chênh lệch: {{ item.match.score|floatformat:2 }}<br>
                                 Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
 
                             </li>
@@ -214,10 +215,11 @@
                         const li = document.createElement('li');
 
                         li.innerHTML= `
-                            <a href ="${item.url}">Link</a><br>
-                            Score: ${item.score}
-                            Posted: ${item.posted}<br>
-                            Username: ${item.username}<br>
+                            <a href ="${item.original_url}">Link bài gốc</a><br>
+                            <a href ="${item.url}">Link so sánh</a><br>
+                            Điểm chênh lệch: ${item.score}<br>
+                            Ngày giờ đăng: ${item.posted}<br>
+                            
                         `;
                         // const a = document.createElement('a');
                         // a.href = post.url;

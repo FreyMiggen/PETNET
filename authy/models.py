@@ -12,23 +12,6 @@ from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-# from .tasks import add_face_to_db, test_ce
-# Create your models here.
-
-
-# def user_directory_path(instance,filename):
-    
-#     fol = 'users/user_{0}/'.format(instance.user.id)
-#     fullpath = os.path.join(settings.MEDIA_ROOT,fol)
-#     if not os.path.exists(fullpath):
-#         profile_pic_name = 'users/user_{0}/profile_0_{1}'.format(instance.user.id,filename)
-#     else:
-#         count = len(os.listdir(fullpath))
-#         profile_pic_name = 'users/user_{0}/profile_{1}_{2}'.format(instance.user.id,count,filename)
-    
-#     return profile_pic_name
-# Create your models here.
-
 
 def user_directory_path(instance, filename):
     	# file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
@@ -252,6 +235,15 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
 	instance.profile.save()
 
+# FEEDBACK
+class Feedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback from {self.user.name} at {self.created_at}"
+
 
 post_save.connect(create_user_profile, sender=User)
 post_save.connect(save_user_profile, sender=User)
@@ -287,3 +279,5 @@ def create_notification_on_embedding_vector_change(sender, instance, **kwargs):
     except Cat.DoesNotExist:
         # This is a new Cat instance, no need to create a notification
         pass
+
+

@@ -114,23 +114,6 @@ def createEmbeddingCat(cat_id):
     # save to the cat instance
     cat.save()
     
-    # notify for user
-
-    # notify= Notification.objects.create(
-    #             cat=cat,
-    #             user=cat.user,
-    #             notification_type=6
-    #         )
-    
-    # channel_layer = get_channel_layer()
-    # async_to_sync(channel_layer.group_send)(
-    #     f"user_{cat.user.id}",
-    #     {"type":"send_notification",
-    #      "message":{
-    #          "action":"embedding_completed",
-    #      }}
-    # )
-
 
 
 
@@ -183,31 +166,9 @@ def createEmbedding(post_id,found=False,field_name="embedding"):
     # Save the file to the model's file field in byte format
     getattr(post, field_name).save(filename, file, save=False)
 
-    # Save the model instance
+    # create model signal in post.models
     post.save()
-    if found:
 
-        notify= Notification.objects.create(
-                    post=post,
-                    user=post.user,
-                    notification_type=5
-                )
-    else:
-        notify= Notification.objects.create(
-            post=post,
-            user=post.user,
-            notification_type=4
-        )
-
-        
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        f"user_{post.user.id}",
-        {"type":"send_notification",
-         "message":{
-             "action":"embedding_completed",
-         }}
-    )
     
 
 import numpy as np

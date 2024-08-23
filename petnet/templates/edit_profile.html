@@ -14,25 +14,19 @@
       {% csrf_token %}
     <h3 class="title is-3">Edit Profile</h3>
 
-          <!-- <div class="field">
-              <label class="label is-medium">Choose your picture</label>
-              <div class="file has-name">
-                {{ form.picture }}
-              </div>
-          </div> -->
-
 
           <div class="field">
-            <label class="label is-medium">Thêm ảnh đại diện:</label>
+            {{ form.picture.errors }}
+            <label class="label is-medium">Chọn ảnh đại diện mới:</label>
             <div class="file has-name is-fullwidth">
               <label class="file-label">
-                <input class="file-input" type="file" name="{{ form.picture.name }}" id="{{ form.picture.auto_id }}" multiple>
+                <input class="file-input" type="file" name="{{ form.picture.name }}" id="{{ form.picture.auto_id }}" accept="image/*">
                 <span class="file-cta">
                   <span class="file-icon">
-                    <i class="fas fa-upload"></i>
+                    <i class="fa-solid fa-image"></i>
                   </span>
                   <span class="file-label">
-                    Choose file...
+                    Choose an image...
                   </span>
                 </span>
                 <span class="file-name">
@@ -40,11 +34,15 @@
                 </span>
               </label>
             </div>
-            {% if form.picture.errors %}
-              <p class="help is-danger">{{ form.picture.errors }}</p>
-            {% endif %}
+           
           </div>
-          <div id="file-preview" class="columns is-multiline mt-2"></div>
+
+          <div id="image-preview" class="mt-4" style="display: none;">
+            <!-- <h4 class="title is-4">New Image Preview</h4> -->
+            <figure class="image is-4by3">
+              <img id="preview-image" src="" alt="Preview" class="image is-96x96 is-rounded">
+            </figure>
+          </div>
 
 
           <div class="field">
@@ -68,12 +66,6 @@
               </div>
           </div>
 
-          <div class="field">
-              <label class="label is-medium">url</label>
-              <div class="control">
-                {{ form.url }}
-              </div>
-          </div>
 
           <div class="field">
               <label class="label is-medium">BIO</label>
@@ -92,7 +84,7 @@
       <div class="field">
       <p class="control">
         <button type="submit" value="login" class="button is-success">
-          Update
+          Cập nhật
         </button>
       </p>
     </div>
@@ -108,36 +100,29 @@
 <script>
   
   document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.querySelector('.file-input');
-  const fileName = document.querySelector('.file-name');
-  const filePreview = document.getElementById('file-preview');
-
-  fileInput.addEventListener('change', (event) => {
-    if (event.target.files.length > 0) {
-      fileName.textContent = Array.from(event.target.files).map(file => file.name).join(', ');
-      
-      filePreview.innerHTML = '';
-      Array.from(event.target.files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.classList.add('column', 'is-3');
-            img.style.objectFit = 'cover';
-            img.style.height = '100px';
-            filePreview.appendChild(img);
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    } else {
-      fileName.textContent = 'No file chosen';
-      filePreview.innerHTML = '';
-    }
+    const fileInput = document.querySelector('.file-input');
+    const fileName = document.querySelector('.file-name');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
+  
+    fileInput.addEventListener('change', (event) => {
+      if (event.target.files.length > 0) {
+        const file = event.target.files[0];
+        fileName.textContent = file.name;
+        
+        // Create a preview of the new image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImage.src = e.target.result;
+          imagePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        fileName.textContent = 'No file chosen';
+        imagePreview.style.display = 'none';
+      }
+    });
   });
-});
-
-</script>
+  </script>
 
 {% endblock %}

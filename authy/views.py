@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from authy.forms import SignupForm, ChangePasswordForm, ProfileUpdateForm,AddCatForm, AddCatImage
+from authy.forms import SignupForm, ChangePasswordForm, ProfileUpdateForm,AddCatForm, AddCatImage, EditCatForm, FeedbackForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -17,7 +17,7 @@ from django.contrib.auth import logout
 from django.urls import resolve
 from post.tasks import createEmbeddingCat
 from django.views.decorators.http import require_POST
-from .helper import cat_permission
+from .helper import cat_permission,cat_owner_permission
 User = get_user_model()
 # Create your views here.
 
@@ -53,7 +53,7 @@ class UserProfileView(TemplateView):
 
 			# CAN OPTIMIZE USING DATABASE QUERY ANNOTATE WHEN CASE
 			if self.request.user == user:
-				posts = Post.objects.filter(user=user)
+				posts = Post.objects.filter(user=user).order_by('-posted')
 			else:
 				# posts = [post for post in Post.objects.filter(user=user).order_by('-posted') if post.can_access(self.request.user.id)]
 				user_id = self.request.user.id
@@ -70,7 +70,7 @@ class UserProfileView(TemplateView):
 						default=Value(False),
 						output_field=BooleanField()
 					)
-				).filter(can_access=True)
+				).filter(can_access=True).order_by('-posted')
 
         # Profile info box
 		posts_count =posts.count()
@@ -130,7 +130,7 @@ def Signup(request):
 def PasswordChange(request):
 	user = request.user
 	if request.method == 'POST':
-		form = ChangePasswordForm(request.POST)
+		form = ChangePasswordForm(request.POST,user=user)
 		if form.is_valid():
 			new_password = form.cleaned_data.get('new_password')
 			user.set_password(new_password)
@@ -138,40 +138,29 @@ def PasswordChange(request):
 			update_session_auth_hash(request, user)
 			return redirect('change_password_done')
 	else:
-		form = ChangePasswordForm(instance=user)
+		form = ChangePasswordForm(instance=user,user=user)
 
 	context = {
+		'requesting_profile':request.user.profile,
 		'form':form,
 	}
 
-	return render(request, 'change_password.html', context)
+	return render(request, 'authy:change_password_test.html', context)
 
 def PasswordChangeDone(request):
-	return render(request, 'change_password_done.html')
+	profile = request.user.profile
+	return render(request, 'authy:change_password_done.html',{'requesting_profile':profile})
 
 
 @login_required
 def EditProfile(request):
 	user = request.user
 	profile = Profile.objects.get(user=user)
-	BASE_WIDTH = 400
-	data = {'last_name':profile.last_name,
-		'first_name': profile.first_name,
-		'profile_info':profile.profile_info,
-		'location': profile.location,
-		
-		}
-
 
 	if request.method == 'POST':
 		form = ProfileUpdateForm(request.POST, request.FILES,instance=profile)
 		if form.is_valid():
-			# profile.picture = form.cleaned_data.get('picture')
-			# profile.first_name = form.cleaned_data.get('first_name')
-			# profile.last_name = form.cleaned_data.get('last_name')
-			# profile.location = form.cleaned_data.get('location')
-			# profile.url = form.cleaned_data.get('url')
-			# profile.profile_info = form.cleaned_data.get('profile_info')
+
 			form.save()
 			return redirect('profile',slug=profile.slug)
 	else:
@@ -258,6 +247,19 @@ def add_cat(request):
 				'profile':profile }
 	return render(request, 'add_cat.html', context)
 
+@login_required(login_url='authy:login')
+@cat_owner_permission
+def editCat(request,cat_id):
+	cat = get_object_or_404(Cat,id=cat_id)
+	if request.method == "POST":
+		form = EditCatForm(request.POST,request.FILES,instance=cat)
+		if form.is_valid():
+			form.save()
+			return redirect('authy:cat-detail',cat_id=cat_id)
+	else:
+		form = EditCatForm(instance=cat)
+		return render(request,'edit_cat.html',{'cat':cat,'form':form,'requesting_profile':request.user.profile})
+	
 
 @login_required(login_url='authy:login')
 @cat_permission
@@ -349,42 +351,6 @@ def viewcatImageStorage(request,cat_id,type):
 from .models import CatFullBodyImage
 
 
-# FIX THIS CODE
-# class CatImageView(TemplateView):
-
-# 	template_name = 'cat_image_storage.html'
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super().get_context_data(**kwargs)
-		
-# 		requesting_profile = get_object_or_404(Profile, user=self.request.user)
-# 		user =self.request.user
-# 		cat = Cat.objects.get(id=kwargs['cat_id'])
-# 		type = self.kwargs.get('type', 'face')
-
-# 		if type == 'face':
-# 			images = CatImageStorage.objects.filter(cat=cat)
-# 		else:
-# 			# type == 'body':
-# 			posts = CatFullBodyImage.objects.filter(cat=cat)
-
-
-
-
-# 		context.update({
-# 			'profile': requesting_profile,
-# 			'cat': cat,
-# 			'type':type
-# 		})
-
-# 		return context
-
-# 	@classmethod
-# 	def as_view(cls, **initkwargs):
-# 		view = super().as_view(**initkwargs)
-# 		view.initkwargs = initkwargs
-# 		return view
-
 def catAlbum(request,cat_id):
 	profile = get_object_or_404(Profile,user=request.user)
 	cat = get_object_or_404(Cat,id=cat_id)
@@ -464,3 +430,32 @@ def addCatImage(request,cat_id):
 
 # def LostStream(request):
 # 	lostposts = LostPost.objects.all().order_by('-created')
+
+@login_required(login_url='authy:login')
+def submitFeedback(request):
+	if request.method == 'POST':
+		form = FeedbackForm(request.POST)
+		if form.is_valid():
+			feedback = form.save(commit=False)
+			feedback.user = request.user
+			feedback.save()
+			return redirect('authy:success-feedback')
+	else:
+		form = FeedbackForm()
+	return render(request, 'feedback_submit.html', {'form': form,'requesting_profile':request.user.profile})
+
+
+@login_required(login_url='authy:url')
+def sucessFeeback(request):
+	if request.method == 'POST':
+			# Get the 'next' parameter or use 'dashboard' as the default
+		action = request.POST.get('action')
+		profile = get_object_or_404(Profile,user=request.user)
+	
+		if action == 'Confirm':
+		
+			return redirect('authy:submit-feedback')  
+		else:
+			return redirect('newsfeed')
+			
+	return render(request, 'feedback_success.html',{'requesting_profile':request.user.profile})

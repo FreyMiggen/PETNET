@@ -178,6 +178,7 @@ class Likes(models.Model):
 post_save.connect(Stream.add_post, sender=Post)
 
 
+
 # HANDLE NOTIFICATION WHEN A POST IS DELETED
 @receiver(post_delete,sender=BasePost)
 def process_post_delete(sender,instance,**kwargs):
@@ -311,27 +312,55 @@ def unfollow_notify(sender, instance, **kwargs):
 		print('All follows are deleted!')
 
 
-# Embedding created
+
+# HANDLE NOTIFICAATION WHEN EMBEDDING VECTOR IS CREATED
 @receiver(pre_save, sender=LostPost)
+def post_pre_save(sender, instance, **kwargs):
+	if instance.pk:
+		old_instance = sender.objects.get(pk=instance.pk)
+		if old_instance.embedding != instance.embedding:
+			print(f"The embedding has changed from {old_instance.embedding.name} to {instance.embedding.name}")
+			
+			Notification.objects.create(
+				post=instance,
+				user=instance.user,
+				notification_type=4
+			)
+
+
+			channel_layer = get_channel_layer()
+			async_to_sync(channel_layer.group_send)(
+				f"user_{instance.user.id}",
+				{
+					"type": "send_notification",
+					"message": {
+						"action": "embedding_completed",
+					}
+				}
+			)
+
+
 @receiver(pre_save, sender=FoundPost)
 def post_pre_save(sender, instance, **kwargs):
     if instance.pk:
         old_instance = sender.objects.get(pk=instance.pk)
-        if old_instance.caption != instance.caption:
-            print(f"The caption has changed from {old_instance.caption} to {instance.caption}")
+        if old_instance.embedding != instance.embedding:
+            print(f"The embedding has changed from {old_instance.embedding.name} to {instance.embedding.name}")
             
             Notification.objects.create(
                 post=instance,
                 user=instance.user,
-                notification_type=4
+                notification_type=5
             )
-
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
                 f"user_{instance.user.id}",
                 {
                     "type": "send_notification",
-                    "message": f"Your {sender.__name__.lower()} caption has been updated.",
+                    "message": {
+						'action':'embedding_completed'
+					}
                 }
             )
+
 

@@ -50,7 +50,7 @@ class SignupForm(forms.ModelForm):
 		return self.cleaned_data
 
 class ChangePasswordForm(forms.ModelForm):
-	id = forms.CharField(widget=forms.HiddenInput())
+	
 	old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'input is-medium'}), label="Old password", required=True)
 	new_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'input is-medium'}), label="New password", required=True)
 	confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'input is-medium'}), label="Confirm new password", required=True)
@@ -58,15 +58,18 @@ class ChangePasswordForm(forms.ModelForm):
 	class Meta:
 		model = User
 		fields = ('id', 'old_password', 'new_password', 'confirm_password')
+	def __init__(self,*args,**kwargs):
+		self.user = kwargs.pop('user')
+		super(ChangePasswordForm,self).__init__(*args,**kwargs)
 
 	def clean(self):
 		super(ChangePasswordForm, self).clean()
-		id = self.cleaned_data.get('id')
+		# id = self.cleaned_data.get('id')
 		old_password = self.cleaned_data.get('old_password')
 		new_password = self.cleaned_data.get('new_password')
 		confirm_password = self.cleaned_data.get('confirm_password')
-		user = User.objects.get(pk=id)
-		if not user.check_password(old_password):
+		
+		if not self.user.check_password(old_password):
 			self._errors['old_password'] =self.error_class(['Old password do not match.'])
 		if new_password != confirm_password:
 			self._errors['new_password'] =self.error_class(['Passwords do not match.'])
@@ -75,32 +78,15 @@ class ChangePasswordForm(forms.ModelForm):
 
 class ProfileUpdateForm(forms.ModelForm):
 	picture = forms.ImageField(required=False)
-	first_name = forms.CharField(max_length=50, required=False)
-	last_name = forms.CharField(max_length=50, required=False)
-	location = forms.CharField(max_length=50, required=False)
-	profile_info = forms.CharField(widget=forms.Textarea, max_length=150, required=False)
-
+	first_name = forms.CharField(widget=forms.TextInput(attrs={'class':'input is-medium'}),max_length=50, required=False)
+	last_name = forms.CharField(widget=forms.TextInput(attrs={'class':'input is-medium'}),max_length=50, required=False)
+	location = forms.CharField(widget=forms.TextInput(attrs={'class':'input is-medium'}),max_length=50, required=False)
+	profile_info = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your bio here...','class':'textarea',}), max_length=150, required=False)
 
 	class Meta:
 		model = Profile
 		fields = ('picture','first_name', 'last_name', 'location', 'profile_info')
 
-	def clean(self):
-		cleaned_data = super().clean()
-		for field in self.fields:
-			if cleaned_data.get(field) == '':
-				cleaned_data[field] = None
-		return cleaned_data
-
-	def save(self, commit=True):
-		profile = super().save(commit=False)
-		for field, value in self.cleaned_data.items():
-			if value is not None:
-				setattr(profile, field, value)
-		if commit:
-			profile.save()
-		return profile
-	
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -158,6 +144,34 @@ class AddCatForm(forms.ModelForm):
 			instance.save()
 		return instance
 
+class EditCatForm(forms.ModelForm):
+    	
+	picture = forms.ImageField(required=True)
+	description = forms.CharField(
+		widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your description here...','class':'textarea',}),
+		max_length=1500,
+		required=True,
+	)
+
+
+	name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input is-medium'}), required=True)
+
+	privacy = forms.ChoiceField(
+        choices=PrivacyChoices.CHOICES,
+        initial=PrivacyChoices.PUBLIC,
+        widget=forms.Select(attrs={'class': 'select'}),
+    )
+	
+	class Meta:
+		model = Cat
+		fields = ['name', 'description','picture','privacy']
+    	
+	def __init__(self,*args,**kwargs):
+		cat = kwargs.get('instance')
+		super().__init__(*args, **kwargs)
+
+
+
 
 from .models import CatFullBodyImage
 class AddCatImage(forms.ModelForm):
@@ -173,3 +187,15 @@ class AddCatBodyImage(forms.ModelForm):
 	class Meta:
 		model = CatFullBodyImage
 		fields = ('pic',)
+
+
+from django import forms
+from .models import Feedback
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'textarea', 'placeholder': 'Enter your feedback here...'}),
+        }

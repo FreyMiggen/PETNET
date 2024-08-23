@@ -1,0 +1,34 @@
+{% extends 'base_test.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Feedback {% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+<div class="columns is-mobile has-text-centered">
+  <div class="column is-half is-offset-one-quarter">
+
+    <div class="card">
+    <div class="card-content">
+
+  <form method="post" action="">
+    {% csrf_token %}
+    <h3 class="title is-3">Bạn đã gửi phản hồi thành công!</h3>
+    <div class="field">
+        <p class="control">
+            <button type="submit" name="action" value="Confirm" class="button is-success">Gửi thêm phản hồi</button>
+            <button type="submit" name="action" value="Cancel" class="button is-info">Quay về trang chủ</button>
+        </p>
+    </div>
+</form>
+
+      </div>
+</div>
+
+
+    </div>
+
+{% endblock %}

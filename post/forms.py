@@ -6,6 +6,9 @@ from django.forms import modelformset_factory
 from authy.models import PrivacyChoices
 from django.utils import timezone
 
+
+
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -55,6 +58,13 @@ class NewLostPostForm(forms.ModelForm):
 		self.user = kwargs.pop('user', None)
 		super(NewLostPostForm, self).__init__(*args, **kwargs)
 
+	def clean(self):
+		cleaned_data = super().clean()
+		content_files = cleaned_data.get('content')
+		if not content_files or len(content_files)<3:
+			raise forms.ValidationError({"content":"Phải có ít nhất 3 ảnh khuôn mặt!"})
+		return cleaned_data
+	
 	def save(self,commit=True):
 		instance = super(NewLostPostForm, self).save(commit=False)
 		if self.user:
@@ -104,6 +114,14 @@ class NewFoundPostForm(forms.ModelForm):
 		# current_time = timezone.localtime()
 		# self.initial['found_time'] = current_time.strftime('%Y-%m-%dT%H:%M')
 		super(NewFoundPostForm, self).__init__(*args, **kwargs)
+	
+	
+	def clean(self):
+		cleaned_data = super().clean()
+		content_files = cleaned_data.get('content')
+		if not content_files or len(content_files)<3:
+			raise forms.ValidationError({"content":"Phải có ít nhất 3 ảnh khuôn mặt!"})
+		return cleaned_data
 
 	def save(self,commit=True):
 		instance = super(NewFoundPostForm, self).save(commit=False)
@@ -175,8 +193,6 @@ class PostCreateWithImagesForm(forms.ModelForm):
 
 		return cleaned_data
 
-
-		
 
 class PostEditForm(forms.ModelForm):
 	caption = forms.CharField(

@@ -38,10 +38,10 @@ def index(request):
 	user = request.user
 	followed_posts = Stream.objects.filter(user=user,hidden=False).order_by('-date')
 	followed_posts = [stream.post for stream in followed_posts]
-	#     # Calculate the timestamp for 10 days ago
-	time_threshold = timezone.now() - timedelta(hours=240)
+	#     # Calculate the timestamp for 20 days ago
+	time_threshold = timezone.now() - timedelta(hours=480)
 
-	# # Query to retrieve the 20 posts with the highest likes, posted in the last 10 days
+	# # Query to retrieve the posts with the highest likes, posted in the last 10 days
 	top_posts = Post.objects.filter(
 		posted__gte=time_threshold,  # Posts from the last 48 hours
 		is_hidden=False,
@@ -132,10 +132,12 @@ def PostDetails(request, post_id):
 		post = get_object_or_404(Post, id=post_id)
 		tags = post.tags.all()
 		privacy = post.privacy
+		found = False
 	except:
 		post= get_object_or_404(FoundPost,id=post_id)
 		tags = []
 		privacy = 'public'
+		found = True
 	
 	# if isinstance(post,Post):
 	# 	post = get_object_or_404(Post,id=post_id)
@@ -185,6 +187,7 @@ def PostDetails(request, post_id):
 		'status':liked,
 		'tags':tags,
 		'privacy':privacy,
+		'found':found
 	}
 
 	return HttpResponse(template.render(context, request))
@@ -394,8 +397,9 @@ def findSimilar(request,post_id):
 
 			data = list()
 			for i in range(len(sorted_matches)):
-				temp = {'url':sorted_matches[i].foundpost.get_compare_url(post_id),
-						'score':sorted_matches[i].score,
+				temp = {'original_url':sorted_matches[i].foundpost.get_absolute_url(),
+						'url':sorted_matches[i].foundpost.get_compare_url(post_id),
+						'score':round(sorted_matches[i].score,2),
 						'posted':sorted_matches[i].foundpost.posted,
 						'username':sorted_matches[i].foundpost.user.get_short_name()}
 				data.append(temp)
@@ -512,7 +516,7 @@ def comparison(request,lost_id,found_id):
 			messages.success(request,"Posts have been marked as matched!.")
     		# redirect
 			url = reverse('chat:room', kwargs={'user_id': owner_id})
-			return HttpResponse({'success':True,'url':url})
+			
 			return redirect('chat:room',user_id=owner_id)	
 			# redirect user to inbox to the owner of foundpost
 			# system send notification to onwer of foundpost, at the same time, create a chat room for two people
@@ -546,7 +550,7 @@ def findCat(request,post_id):
 
 		else:
     		# RETURN PERFECT MATCH + CANDIDATE MATCH 
-			match_candidates = CandidateMatch.objects.filter(lostpost=lostpost,threshold=False).order_by('-created')
+			match_candidates = CandidateMatch.objects.filter(lostpost=lostpost,threshold=False).order_by('score')
 
 			match_candidates = [{'match':match,'url':match.foundpost.get_compare_url(post_id)}
 					   for match in match_candidates

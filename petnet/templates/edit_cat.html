@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %} Add Cat {% endblock %}
+{% block title %} Edit Cat {% endblock %}
 
 {% block content %}
 
@@ -14,22 +14,13 @@
 
     <form method="post" action="" enctype="multipart/form-data" role="form">
     {% csrf_token %}
-    <h3 class="title is-1">Add Cat</h3>
+    <h3 class="title is-1">Cập nhật thông tin cho {{ cat.name }}</h3>
 
-            <!-- <div class="field">
-              <p class="control has-icons-left">
-              <label class="label is-medium"></label>
-                {{ form.picture }}
-                <span class="icon is-small is-left">
-            <i class="fas fa-lock"></i>
-          </span>
-        </p>
-          </div> -->
-
+  
 
           <div class="field">
             {{ form.picture.errors }}
-            <label class="label is-medium">Chọn ảnh đại diện:</label>
+            <label class="label is-medium">Chọn ảnh đại diện mới:</label>
             <div class="file has-name is-fullwidth">
               <label class="file-label">
                 <input class="file-input" type="file" name="{{ form.picture.name }}" id="{{ form.picture.auto_id }}" accept="image/*">
@@ -76,10 +67,11 @@
           </div>
         </div>
         
+
       
       <div class="field">
         <p class="control has-icons-left">
-        <label class="label is-medium">Chế độ xem:</label>
+        <label class="label is-medium">Chế độ riêng tư:</label>
           {{ form.privacy }}
           <span class="icon is-small is-left">
       <i class="fas fa-lock"></i>
@@ -90,7 +82,7 @@
       <div class="field">
       <p class="control">
         <button type="submit" name="action" class="button is-success">
-          Create
+          Cập nhật
         </button>
       </p>
     </div>

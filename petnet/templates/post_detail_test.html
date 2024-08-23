@@ -3,6 +3,14 @@
 {% load static %}
 {% load humanize %}
 
+{% block styles %}
+<style>
+.like-button.liked i {
+  color: #ed4956;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Add Font Awesome CSS -->
 
@@ -74,6 +82,11 @@
       <div class="comments-section">
         <div class="post-caption">
           <span class="username">{{ post.user.username }}</span> {{ post.caption }}
+          {% if found %}
+          <p><strong>Địa điểm lạc:</strong> 
+            {% if post.geotag %} {{ post.geotag }}{% else %}Không có thông tin{% endif %} </p>
+          <p><strong>Thời gian lạc:</strong> {% if post.lost_time %} {{ post.lost_time }}{% else %}Không có thông tin{% endif %}</p>
+          {% endif %}
         </div>
         <div class="post-tags">
           {% for tag in tags %}
@@ -107,7 +120,7 @@
           onclick="toggleLike(this)" 
           data-post-id="{{ post.id }}" 
           data-url="{% url 'post:like-post' post.id %}">
-          <i class="{% if user in post.likes.all %}fas{% else %}far{% endif %} fa-heart"></i>
+          <i class="fa-heart {% if status %}fas{% else %}far{% endif %}"></i>
         </button>
           <button class="comment-button">
             <i class="far fa-comment"></i>
@@ -345,6 +358,7 @@
   .like-button.liked i {
     color: #ed4956;
   }
+
 
   .modal {
     display: none;
