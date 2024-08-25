@@ -87,7 +87,7 @@
                     <footer class="card-footer">
                         <a href="{% url 'authy:cat-image' cat.id 'face' %}" class="card-footer-item button is-small cute-footer-item">Kho trữ hình ảnh</a>
                         <a href="{% url 'authy:cat-album' cat.id %}" class="card-footer-item button is-small cute-footer-item">Album</a>
-                        <a href="{{ link3_url }}" class="card-footer-item button is-small cute-footer-item">Thức ăn yêu thích</a>
+                        <a href="{% url 'authy:cat-food' cat.id %}" class="card-footer-item button is-small cute-footer-item">Thức ăn yêu thích</a>
                     </footer>
                 </div>
             </div>

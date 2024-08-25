@@ -30,8 +30,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-
-
         
         # # get unread messages
         # unread_count = await self.get_unread_count()

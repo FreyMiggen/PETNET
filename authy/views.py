@@ -111,7 +111,7 @@ def Signup(request):
 	if request.method == 'POST':
 		form = SignupForm(request.POST)
 		if form.is_valid():
-			username = form.cleaned_data.get('username')
+			username = form.cleaned_data.get('name')
 			email = form.cleaned_data.get('email')
 			password = form.cleaned_data.get('password')
 			User.objects.create_user(name=username, email=email, password=password)
@@ -145,7 +145,7 @@ def PasswordChange(request):
 		'form':form,
 	}
 
-	return render(request, 'authy:change_password_test.html', context)
+	return render(request, 'change_password_test.html', context)
 
 def PasswordChangeDone(request):
 	profile = request.user.profile
@@ -445,7 +445,7 @@ def submitFeedback(request):
 	return render(request, 'feedback_submit.html', {'form': form,'requesting_profile':request.user.profile})
 
 
-@login_required(login_url='authy:url')
+@login_required(login_url='authy:login')
 def sucessFeeback(request):
 	if request.method == 'POST':
 			# Get the 'next' parameter or use 'dashboard' as the default
@@ -459,3 +459,23 @@ def sucessFeeback(request):
 			return redirect('newsfeed')
 			
 	return render(request, 'feedback_success.html',{'requesting_profile':request.user.profile})
+
+
+from .models import CatFood
+from .forms import CatFoodForm
+@login_required(login_url='authy:login')
+@cat_owner_permission
+def createCatFood(request,cat_id):
+	cat = get_object_or_404(Cat,id=cat_id)
+
+	if request.method == 'POST':
+		form = CatFoodForm(request.POST,request.FILES)
+		if form.is_valid():
+			catfood = form.save(commit=False)
+			catfood.cat = cat
+			catfood.save()
+			return redirect('authy:cat-food',cat_id=cat_id)
+	else:
+		form = CatFoodForm()
+		
+		return render(request,'catfood.html',{'requesting_profile':request.user.profile,'form':form,'cat':cat})

@@ -1,0 +1,146 @@
+{% extends 'base_test.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Fav Food {% endblock %}
+
+{% block styles %}
+<style>
+      body {
+        background-color: #fce4ec;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <h1 class="title">Danh mục đồ ăn của {{ cat.name }}</h1>
+        
+        <!-- Form Section -->
+        <div class="box">
+            <h2 class="subtitle">Thêm đồ ăn mới</h2>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="field">
+                    <label class="label">Tên:</label>
+                    <div class="control">
+                        {{ form.name }}
+                    </div>
+                </div>
+                <div class="field">
+        
+                    <label class="label is-medium">Hình ảnh:</label>
+                    <div class="file has-name is-fullwidth">
+                      <label class="file-label">
+                        <input class="file-input" type="file" name="{{ form.picture.name }}" id="{{ form.picture.auto_id }}" accept="image/*">
+                        <span class="file-cta">
+                          <span class="file-icon">
+                            <i class="fa-solid fa-image"></i>
+                          </span>
+                          <span class="file-label">
+                            Choose an image...
+                          </span>
+                        </span>
+                        <span class="file-name">
+                          No image chosen
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div id="image-preview" class="mt-4" style="display: none;">
+                    <!-- <h4 class="title is-4">New Image Preview</h4> -->
+                    <figure class="image is-4by3">
+                      <img id="preview-image" src="" alt="Preview" class="image is-96x96">
+                    </figure>
+                  </div>
+
+                <div class="field">
+                    <label class="label">Miêu tả</label>
+                    <div class="control">
+                        {{ form.description }}
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Thích</label>
+                    <div class="control">
+                        <div class="select">
+                            {{ form.choice }}
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button type="submit" class="button is-primary">Thêm</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table Section -->
+        <div class="box">
+
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th>Tên</th>
+                        <th>Mức độ thích</th>
+                        <th>Miêu tả</th>
+                        <th>Hình ảnh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for food in cat.foods.all %}
+                        <tr>
+                            <td>{{ food.name }}</td>
+                            <td>{{ food.get_choice_display }}</td>
+                            <td>{{ food.description|truncatewords:20 }}</td>
+                            <td>
+                                {% if food.picture %}
+                                    <figure class="image is-128x128">
+                                        <img src="{{ food.picture.url }}" alt="{{ food.name }}">
+                                    </figure>
+                                {% else %}
+                                    No image
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">No cat food items available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const fileInput = document.querySelector('.file-input');
+      const fileName = document.querySelector('.file-name');
+      const imagePreview = document.getElementById('image-preview');
+      const previewImage = document.getElementById('preview-image');
+    
+      fileInput.addEventListener('change', (event) => {
+        if (event.target.files.length > 0) {
+          const file = event.target.files[0];
+          fileName.textContent = file.name;
+          
+          // Create a preview of the new image
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            imagePreview.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        } else {
+          fileName.textContent = 'No file chosen';
+          imagePreview.style.display = 'none';
+        }
+      });
+    });
+    </script>
+
+{% endblock %}

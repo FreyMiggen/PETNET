@@ -11,18 +11,21 @@ from PIL import Image
 from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-
+from PIL import Image
+from django.core.files.base import ContentFile
+from io import BytesIO
 
 def user_directory_path(instance, filename):
     	# file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-	profile_pic_name = 'user_{0}/profile.jpg'.format(instance.user.id)
-	full_path = os.path.join(settings.MEDIA_ROOT, profile_pic_name)
+    name_extension = filename.split('.')[-1]
+    profile_pic_name = 'user_{0}/profile.{1}'.format(instance.user.id,name_extension)
+    full_path = os.path.join(settings.MEDIA_ROOT, profile_pic_name)
 	
 
-	if os.path.exists(full_path):
-		os.remove(full_path)
+    if os.path.exists(full_path):
+        os.remove(full_path)
 
-	return profile_pic_name
+    return profile_pic_name
 
 class CustomUserManager(UserManager):
     def _create_user(self,email,password,**extra_fields):
@@ -52,7 +55,7 @@ class CustomUserManager(UserManager):
 class User(AbstractBaseUser,PermissionsMixin):
 
     email = models.EmailField(blank=True,default='',unique=True)
-    name = models.CharField(max_length=150,blank=True,default='',unique=True)
+    name = models.CharField(max_length=150,default='',unique=True)
 
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -75,6 +78,26 @@ class User(AbstractBaseUser,PermissionsMixin):
     def __str__(self):
         return self.name or self.email.split('@')[0]
     
+def convert_image_to_jpeg(image_field):
+    # Open the image using PIL
+    image = Image.open(image_field)
+
+    # Check if the image is in RGBA mode
+    if image.mode == 'RGBA':
+        # Convert it to RGB
+        image = image.convert('RGB')
+
+    # Create a BytesIO object to save the image
+    image_io = BytesIO()
+
+    # Save the image to the BytesIO object in JPEG format
+    image.save(image_io, format='JPEG')
+
+    # Create a Django ContentFile from the BytesIO object
+    image_content = ContentFile(image_io.getvalue(), name='converted_image.jpg')
+
+    return image_content
+    
 # Create your models here.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -93,6 +116,8 @@ class Profile(models.Model):
 
         if self.picture:
             pic = Image.open(self.picture.path)
+            if pic.mode != "RGB":
+                pic = pic.convert('RGB')
             pic.thumbnail(SIZE, Image.LANCZOS)
             pic.save(self.picture.path)
 
@@ -174,6 +199,7 @@ class Cat(models.Model):
     embedding_vector = models.FileField(upload_to=embedding_vector_directory,null=True,blank=True)     
     in_search = models.BooleanField(default=False)
     privacy = models.CharField(max_length=10,choices=PrivacyChoices.CHOICES,default=PrivacyChoices.PUBLIC)
+    created = models.DateTimeField(auto_created=True,null=True)
     
     def __str__(self):
         return self.name
@@ -220,7 +246,40 @@ class CatImageStorage(models.Model):
     def img_fol(self):
         return os.path.normpath(os.path.join(settings.MEDIA_ROOT,f'cats/cat_{self.cat.id}'))
     
+def cat_food_directory(instance,filename):
+    fol = 'cats/cat_{instance.cat.id}/food'
+    cat_name=instance.cat.name
+    fullpath = os.path.join(settings.MEDIA_ROOT,fol)
+    if os.path.exists(fullpath) == False:
+        pic_name = 'cats/cat_{0}/food/{1}_{2}'.format(instance.cat.id,cat_name,filename)
+    else:
+        count = len(os.listdir(fullpath))
+        pic_name = 'cats/cat_{0}/food/{1}_{2}_{3}'.format(instance.cat.id,cat_name,count,filename)
+    return pic_name
 
+# CATFOOD
+
+
+class FavoriteChoices:
+    LIKE = 'like'
+    NEUTRAL = 'neutral'
+    DISLIKE = 'dislike'
+
+    CHOICES = [
+        (LIKE, 'Thích'),
+        (NEUTRAL, 'Không thích không ghét'),
+        (DISLIKE, 'Không thích'),
+    ]
+
+class CatFood(models.Model):
+    cat = models.ForeignKey(Cat,on_delete=models.CASCADE,related_name='foods')
+    name = models.CharField(max_length=100,null=False)
+    note = models.TextField(max_length=1000,null=True)
+    picture = models.ImageField(upload_to=cat_food_directory,null=True,blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    choice = models.CharField(max_length=10,choices=FavoriteChoices.CHOICES,default=FavoriteChoices.LIKE)
+
+    
 ## DONT USE THIS ONE
 class CatBodyImage(models.Model):
     cat = models.ForeignKey(Cat,on_delete=models.CASCADE,related_name='body_images')

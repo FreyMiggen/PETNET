@@ -12,7 +12,7 @@
 
     <form method="post" enctype="multipart/form-data" action="" role="form">
       {% csrf_token %}
-    <h3 class="title is-3">Edit Profile</h3>
+    <h3 class="title is-3">Cập nhật hồ sơ</h3>
 
 
           <div class="field">
@@ -46,21 +46,21 @@
 
 
           <div class="field">
-              <label class="label is-medium">First name</label>
+              <label class="label is-medium">Tên:</label>
               <div class="control">
                 {{ form.first_name }}
               </div>
           </div>
 
           <div class="field">
-              <label class="label is-medium">Last name</label>
+              <label class="label is-medium">Họ:</label>
               <div class="control">
                 {{ form.last_name }}
               </div>
           </div>
 
           <div class="field">
-              <label class="label is-medium">Location</label>
+              <label class="label is-medium">Địa điểm:</label>
               <div class="control">
                 {{ form.location }}
               </div>
@@ -68,7 +68,7 @@
 
 
           <div class="field">
-              <label class="label is-medium">BIO</label>
+              <label class="label is-medium">Giới thiệu:</label>
               <div class="control">
                 {{ form.profile_info }}
               </div>

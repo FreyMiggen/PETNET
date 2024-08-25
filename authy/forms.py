@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from authy.models import Profile,Cat,CatImageStorage, PrivacyChoices
+from authy.models import Profile,Cat,CatImageStorage, PrivacyChoices, CatFood
 
 User = get_user_model()
 def ForbiddenUsers(value):
@@ -23,7 +23,7 @@ def UniqueUser(value):
 		raise ValidationError('User with this username already exists.')
 
 class SignupForm(forms.ModelForm):
-	username = forms.CharField(widget=forms.TextInput(attrs={'class':'input is-medium'}), max_length=30, required=True,)
+	name = forms.CharField(widget=forms.TextInput(attrs={'class':'input is-medium'}), max_length=30, required=True,)
 	email = forms.CharField(widget=forms.EmailInput(attrs={'class':'input is-medium'}), max_length=100, required=True,)
 	password = forms.CharField(widget=forms.PasswordInput(attrs={'class':'input is-medium'}))
 	confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class':'input is-medium'}), required=True, label="Confirm your password.")
@@ -35,9 +35,9 @@ class SignupForm(forms.ModelForm):
 
 	def __init__(self, *args, **kwargs):
 		super(SignupForm, self).__init__(*args, **kwargs)
-		self.fields['username'].validators.append(ForbiddenUsers)
-		self.fields['username'].validators.append(InvalidUser)
-		# self.fields['username'].validators.append(UniqueUser)
+		self.fields['name'].validators.append(ForbiddenUsers)
+		self.fields['name'].validators.append(InvalidUser)
+		self.fields['name'].validators.append(UniqueUser)
 		self.fields['email'].validators.append(UniqueEmail)
 
 	def clean(self):
@@ -190,7 +190,7 @@ class AddCatBodyImage(forms.ModelForm):
 
 
 from django import forms
-from .models import Feedback
+from .models import Feedback, FavoriteChoices
 
 class FeedbackForm(forms.ModelForm):
     class Meta:
@@ -199,3 +199,20 @@ class FeedbackForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'class': 'textarea', 'placeholder': 'Enter your feedback here...'}),
         }
+
+class CatFoodForm(forms.ModelForm):
+	name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input is-medium'}), required=True)
+	picture = forms.ImageField()
+	description = forms.CharField(
+		widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your description here...','class':'textarea',}),
+		max_length=1000,
+		required=False,
+	)
+	choice = forms.ChoiceField(        
+		choices=FavoriteChoices.CHOICES,
+        initial=FavoriteChoices.LIKE,
+        widget=forms.Select(attrs={'class': 'select'}),)
+	
+	class Meta:
+		model = CatFood
+		fields= ['name','picture','description','choice']

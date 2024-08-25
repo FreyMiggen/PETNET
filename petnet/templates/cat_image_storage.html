@@ -203,7 +203,7 @@ body {
       <div class = "func">
 
         {% if check %}
-        <button id="add_cat_img" class="button">Add Cat Image</button>
+        <button id="add_cat_img" class="button">Thêm ảnh mới</button>
         <!-- <div><a href="{% url 'authy:create-emb-vector' cat.id %}">Create Embedding Vector</a></div> -->
         <button class = 'button' id="create-embedding">Tạo vector đặc trưng</button>
 
@@ -326,31 +326,31 @@ body {
       const embeddingBtn = document.getElementById('create-embedding');
 
       window.onclick = function(event) {
-          if (event.target == modal) {
-              modal.style.display = "none";
-          }
-      }
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+        if (event.target == embeddingModal) {
+            embeddingModal.style.display = "none";
+        }
+    }
+
 
       embeddingBtn.onclick = function (){
         embeddingModal.style.display = 'block';
         console.log('Create embedding vector button clicked!')
       }
 
-      // window.onclick = function(event) {
-      //     if (event.target == embeddingModal) {
-      //         console.log('out!');
-      //         embeddingModal.style.display = "none";
-      //     }
-      // }
-
       function closeModal(){
         embeddingModal.style.display = "none";
         console.log('Close!');
-        model.style.display = "none";
+        modal.style.display = "none";
 
       }
 
-      closeModalBtn.addEventListener('clicked',closeModal)
+      closeModalBtn.onclick = closeModal;
+
+
+  
 
       function handleConfirmEmbedding() {
         if (catId){
@@ -369,6 +369,7 @@ body {
             if (data.success){
               console.log('Embedding task given to celery successfully!');
               // close Embeddingmodal
+              alert('Đã đặt lệnh thành công!');
               embeddingModal.style.display = "none";
             } else{
               alert('Not successful, try again');

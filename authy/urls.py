@@ -1,7 +1,7 @@
 from django.urls import path
 from authy.views import Signup, PasswordChange, PasswordChangeDone, EditProfile, add_cat, CatDetail, createEmbeddingVector,deleteCatImg,addCatImage, viewCat, catAlbum, viewcatImageStorage, logoutView
 from django.contrib.auth import views as authViews 
-from authy.views import editCat,submitFeedback,sucessFeeback
+from authy.views import editCat,submitFeedback,sucessFeeback,createCatFood
 app_name= 'authy'
 
 urlpatterns = [
@@ -28,6 +28,7 @@ urlpatterns = [
     path('cats/edit/<int:cat_id>/',editCat,name='edit-cat'),
     path('feedback/',submitFeedback,name='submit-feedback'),
     path('feedback/success/',sucessFeeback,name='success-feedback'),
+    path('cat/food/<int:cat_id>',createCatFood,name='cat-food'),
     
 ]
 

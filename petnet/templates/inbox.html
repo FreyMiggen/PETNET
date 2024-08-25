@@ -31,7 +31,7 @@
                             <p class="title is-6" style="color:red">Unread messages: {{ item.unread }}</p>
                         </div>
                         <footer class="card-footer">
-                            <a href="{% url 'chat:room' item.other_user.id %}" class="card-footer-item">Join Room</a>
+                            <a href="{% url 'chat:room' item.other_user.id %}" target="_blank" class="card-footer-item">Join Room</a>
                         </footer>
                     </div>
                 </div>

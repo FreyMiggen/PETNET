@@ -3,6 +3,8 @@
 {% load static %}
 {% load humanize %}
 
+
+
 {% block content %}
 <!-- Add Font Awesome CSS -->
 
@@ -42,9 +44,9 @@
           {% else %}
           <img class="profile-picture" src="{% static 'img/default-thumbnail.jpg' %}" alt="Profile picture">
           {% endif %}
-          <a href="{% url 'profile' post.user.profile.slug %}">{{ post.user.get_short_name }}</a>
+
           <div class="username-location">
-            <a class="username" href= "{% url 'profile' post.user.profile.slug %}">{{ post.user.name }}</a>
+            <a class="username" href= "{% url 'profile' post.user.profile.slug %}">{{ post.user.get_short_name }}</a>
             <span class="location">{{ post.location|default:'' }}</span>
           </div>
           <div class="post-privacy">
@@ -115,7 +117,7 @@
           onclick="toggleLike(this)" 
           data-post-id="{{ post.id }}" 
           data-url="{% url 'post:like-post' post.id %}">
-          <i class="fa-heart fas"></i>
+          <i class="fa-heart {% if status %}fas{% else %}far{% endif %}"></i>
         </button>
           <button class="comment-button">
             <i class="far fa-comment"></i>

@@ -9,8 +9,6 @@ from django.db.models import Q
 from django.views.decorators.http import require_GET
 User = get_user_model()
 
-
-
 def CountMessages(request):
     count_messages = 0
     if request.user.is_authenticated:
@@ -57,6 +55,10 @@ def chat_room(request, user_id):
             last_message_id=None
             
     else:
+        chat_room.user1_last_visit = chat_room.created_at
+        chat_room.user2_last_visit = chat_room.created_at
+        chat_room.lastest_update_time = chat_room.created_at
+        chat_room.save()
         messages = list()
         last_message_id = None
 
