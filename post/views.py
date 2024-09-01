@@ -397,11 +397,18 @@ def findSimilar(request,post_id):
 
 			data = list()
 			for i in range(len(sorted_matches)):
+				if sorted_matches[i].foundpost.fullbody_img.exists():
+					img_url_second = sorted_matches[i].foundpost.fullbody_img.all()[0].file.url
+				else:
+					img_url_second = sorted_matches[i].foundpost.content.all()[1].file.url
+			
 				temp = {'original_url':sorted_matches[i].foundpost.get_absolute_url(),
 						'url':sorted_matches[i].foundpost.get_compare_url(post_id),
 						'score':round(sorted_matches[i].score,2),
 						'posted':sorted_matches[i].foundpost.posted,
-						'username':sorted_matches[i].foundpost.user.get_short_name()}
+						'username':sorted_matches[i].foundpost.user.get_short_name(),
+						'img_url_first': sorted_matches[i].foundpost.content.all()[0].file.url,
+						'img_url_second':img_url_second}
 				data.append(temp)
 			# similar_posts = matched_candidates.matched.all()
 			return JsonResponse(data,safe=False)
@@ -515,9 +522,10 @@ def comparison(request,lost_id,found_id):
 			found.is_matched = True
 			messages.success(request,"Posts have been marked as matched!.")
     		# redirect
-			url = reverse('chat:room', kwargs={'user_id': owner_id})
-			
-			return redirect('chat:room',user_id=owner_id)	
+			if owner_id != lost.user.id:
+				url = reverse('chat:room', kwargs={'user_id': owner_id})
+				
+				return redirect('chat:room',user_id=owner_id)	
 			# redirect user to inbox to the owner of foundpost
 			# system send notification to onwer of foundpost, at the same time, create a chat room for two people
 			

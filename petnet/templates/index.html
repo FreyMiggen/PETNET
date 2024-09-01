@@ -8,6 +8,7 @@
     .like-button.liked i {
     color: #ed4956;
   }
+
 </style>
 {% endblock %}
  
@@ -73,16 +74,16 @@
 <br>
   
   <div class="columns is-mobile is-centered">
-  <div class="column is-half" id="posts-container">
+  <div class="column is-one-third" id="posts-container">
 
 {% for item in post_items %}
   <div class="card">
   <div class="card-image">
 
   <!-- {% if item.post_item.content.first.file.name|slice:"-3:" == 'jpg' or item.post_item.content.first.file.name|slice:"-4:" == 'jfif' %} -->
-    <figure class="image is-4by3">
+    <figure class="image is-square">
       <a href="{{ item.post_item.get_absolute_url }}">
-        <img src="{{ item.post_item.content.first.file.url }}" alt="Placeholder image">
+        <img src="{{ item.post_item.content.first.file.url }}" class="image is-128x128" alt="Placeholder image">
       </a>
     </figure>
 
@@ -169,8 +170,8 @@
 
   </div>
 </div>
+</div>
 
-<br>
 
 {% endfor %}
 

@@ -55,7 +55,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         """
         This method is called whenever websocket receive a message
-        from client (a user in this case)
+        from client ( user in this case)
+       
         Usage:
         - Parse the JSON data received from the client, extract the message
         - Save message to the DB
@@ -135,9 +136,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def update_last_visit(self):
         self.room.update_last_visit(self.user1)
     
-    @database_sync_to_async
-    def get_unread_count(self):
-        return self.room.get_unread_count(self.user1)
+    # @database_sync_to_async
+    # def get_unread_count(self):
+    #     return self.room.get_unread_count(self.user1)
 
 
     

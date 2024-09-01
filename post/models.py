@@ -162,12 +162,18 @@ class Stream(models.Model):
 		user = post.user
 		followers = Follow.objects.all().filter(following=user)
 		
-		# if a stream is already created ( when add_post is called when post is updated=> do not create another stream object)
-		for follower in followers:
-			stream,created = Stream.objects.get_or_create(post=post, user=follower.follower, date=post.posted, following=user)
-			if not created:
-				stream.hidden = False
-				stream.save()
+		# 1.f the post is private => do not create stream
+		# 2.if a stream is already created ( when add_post is called when post is updated=> do not create another stream object)
+		# 3. if a stream is already created but the post change to private => hide the stream
+
+		if post.privacy != 'private':
+			for follower in followers:
+				stream,created = Stream.objects.get_or_create(post=post, user=follower.follower, date=post.posted, following=user)
+				if not created:
+					stream.hidden = False
+					stream.save()
+
+		
 		
 
 class Likes(models.Model):
@@ -364,3 +370,40 @@ def post_pre_save(sender, instance, **kwargs):
             )
 
 
+@receiver(pre_save, sender=Post)
+def hide_stream(sender, instance, **kwargs):
+	if instance.pk:
+		old_instance = sender.objects.get(pk=instance.pk)
+		post = instance
+		user = instance.user
+		followers = Follow.objects.all().filter(following=user)
+		if old_instance.privacy != "private" and instance.privacy =="private":
+			for follower in followers:
+				try:
+					stream = Stream.objects.get(post=post, user=follower.follower, date=post.posted, following=user)
+					if stream.hidden == False:
+						stream.hidden =True
+						stream.save()
+				
+				except:
+					pass
+
+			
+
+            # print(f"The embedding has changed from {old_instance.embedding.name} to {instance.embedding.name}")
+            
+            # Notification.objects.create(
+            #     post=instance,
+            #     user=instance.user,
+            #     notification_type=5
+            # )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"user_{instance.user.id}",
+            #     {
+            #         "type": "send_notification",
+            #         "message": {
+			# 			'action':'embedding_completed'
+			# 		}
+            #     }
+            # )

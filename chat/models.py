@@ -48,24 +48,24 @@ class ChatRoom(models.Model):
             self.user2_last_visit = now
         self.save()
 
-    def get_unread_count(self, user):
-        if user == self.user1:
-            last_visit = self.user1_last_visit
-            other_user = self.user2
-        elif user == self.user2:
-            last_visit = self.user2_last_visit
-            other_user = self.user1
-        else:
-            return 0
+    # def get_unread_count(self, user):
+    #     if user == self.user1:
+    #         last_visit = self.user1_last_visit
+    #         other_user = self.user2
+    #     elif user == self.user2:
+    #         last_visit = self.user2_last_visit
+    #         other_user = self.user1
+    #     else:
+    #         return 0
         
-        if last_visit is None:
-            # If the user has never visited, all messages are unread
-            return self.chatmessage_set.filter(user=other_user).count()
+    #     if last_visit is None:
+    #         # If the user has never visited, all messages are unread
+    #         return self.chatmessage_set.filter(user=other_user).count()
         
-        return self.chatmessage_set.filter(
-            user=other_user,
-            timestamp__gt=last_visit
-        ).count()
+    #     return self.chatmessage_set.filter(
+    #         user=other_user,
+    #         timestamp__gt=last_visit
+    #     ).count()
 
 class ChatMessage(models.Model):
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)

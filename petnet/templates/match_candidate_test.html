@@ -150,6 +150,24 @@
                             <li>
                                 <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
                                 <a href = "{{ item.url }}">Link so sánh</a><br>
+                                <div>Ảnh từ bài viết:</div>
+                                <div class="columns is-mobile is-variable is-2">
+                                    <div class="column is-narrow">
+                                      <figure class="image is-128x128">
+                                        <img src="{{ item.match.foundpost.content.first.file.url }}">
+                                      </figure>
+                                    </div>
+                               
+                                    <div class="column is-narrow">
+                                      <figure class="image is-128x128">
+                                        {% if item.match.foundpost.fullbody_img.exists %}
+                                        <img src="{{ item.match.foundpost.fullbody_img.first.file.url }}">
+                                        {% else %}
+                                        <img src="{{ item.match.foundpost.content.last.file.url }}">
+                                        {% endif %}
+                                      </figure>
+                                    </div>
+                                  </div>
                                 Điểm chênh lệch: {{ item.match.score|floatformat:2 }}<br>
                                 Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
 
@@ -170,9 +188,30 @@
 
                                 <a href ="{{ item.match.foundpost.get_absolute_url }}">Link gốc</a><br>
                                 <a href = "{{ item.url }}">Link so sánh</a><br>
+
+
+                                <div class="columns is-mobile is-variable is-2">
+                                    <div class="column is-narrow">
+                                      <figure class="image is-128x128">
+                                        <img src="{{ item.match.foundpost.content.first.file.url }}">
+                                      </figure>
+                                    </div>
+                          
+                                    <div class="column is-narrow">
+                                      <figure class="image is-128x128">
+                                        {% if item.match.foundpost.fullbody_img.exists %}
+                                        <img src="{{ item.match.foundpost.fullbody_img.first.file.url }}">
+                                        {% else %}
+                                        <img src="{{ item.match.foundpost.content.last.file.url }}">
+                                        {% endif %}
+                                      </figure>
+                                    </div>
+                                  </div>
+                     
+
                                 Điểm sai lệch: {{ item.match.score|floatformat:2 }}<br>
                                 Ngày giờ đăng: {{ item.match.foundpost.posted }}<br>
-                         
+                            
 
                             </li>
 
@@ -219,7 +258,19 @@
                             <a href ="${item.url}">Link so sánh</a><br>
                             Điểm chênh lệch: ${item.score}<br>
                             Ngày giờ đăng: ${item.posted}<br>
-                            
+                            Ảnh từ bài viết: 
+                            <div class="columns is-mobile is-variable is-2">
+                            <div class="column is-narrow">
+                            <figure class="image is-128x128">
+                            <img src="${item.img_url_first}">
+                            </figure>
+                            </div>
+                            <div class="column is-narrow">
+                            <figure class="image is-128x128">
+                            <img src="${item.img_url_second}">
+                            </figure>
+                            </div>
+                            </div>
                         `;
                         // const a = document.createElement('a');
                         // a.href = post.url;

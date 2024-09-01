@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager, UserManage
 from django.utils.text import slugify
 from django.db.models.signals import post_save, post_delete
 # from post.models import Post
+from django.urls import reverse
 
 # from django.contrib.postgres.fields import ArrayField
 import os
@@ -125,6 +126,7 @@ class Profile(models.Model):
         return self.user.get_short_name()
 		
     def get_absolute_url(self):
+        return reverse('profile',args=[self.slug])
         return f"/{self.slug}/"
     
 @receiver(pre_save, sender=Profile)
