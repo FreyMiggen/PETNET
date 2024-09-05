@@ -75,8 +75,8 @@ each post and compare them. Detail on how it work could be find here <a href="ht
 </p>
 
 <p>
-  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
-  <img src="assets/compare.jpg" alt="How find cat function works" style="width:80%; max-width:600px;">
+  <a href="https://www.youtube.com/watch?v=8gnkECIfooQ">
+  <img src="assets/compare.png" alt="How find cat function works" style="width:80%; max-width:600px;">
 </a>
 
 </p>
