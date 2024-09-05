@@ -23,11 +23,12 @@ I build a deep convolutional neural network using Tensorflow.
 ## B. What PetNet could do
 ### 1. Social Network Site
    PetNet has almost all basic functions of a typical social network app: Newsfeed, Profile, Post, Like, Comment, Follow,  Real-time Chat, Real-time Notifications.
-   
+<div>    
+  <h3> NewFeeds </h3>
 <p>
-  NewFeeds
   <img src="assets/newsfeed.png" width="80%" />
 </p>
+</div>
 <p>
   <img src="assets/profile.png" width="80%" />
 
