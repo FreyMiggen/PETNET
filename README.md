@@ -72,14 +72,16 @@ each post and compare them. Detail on how it work could be find here <a href="ht
 
    <p>
   <img src="assets/findcatfunction.png" width="80%" />
+</p>
+
+<p>
+  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+  <img src="assets/compare.jpg" alt="How find cat function works" style="width:80%; max-width:600px;">
+</a>
 
 </p>
 
-  Demo of how find cat function works:
 
-   <p>
-    [![Watch the video]("assets/findcatfunction.png")](https://www.youtube.com/watch?v=8gnkECIfooQ)
-</p>
 
 
 All tasks that require heavy computation such as calculating embedding vectors, image processing are assigned to Celery via a message broker (Redis). 
