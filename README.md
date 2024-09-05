@@ -2,9 +2,10 @@
 ## A. How PetNet is designed
 Petnet uses Django as backend, Celery as task scheduler and Redis as message broker. <br>
 Overview architecture of Petnet
-<p>
-  <img src="assets/overview_architecture.png" width="80%" />
-</p>
+<figure>
+  <img src="assets/overview_architecture.jpg" width="80%" />
+  <figcaption> PetNet Overview Architecture</figcation>
+</figure>
 <p>
 In this architecture, Celery workers are responsible for processing AI-related task in order not to block HTTP request - response cycle.
 This is to due to the fact that such tasks usually take more time to finish. Also, Celery workers also process periodic tasks such as
@@ -20,7 +21,7 @@ I build a deep convolutional neural network using Tensorflow.
 </b>
 
 ## B. What PetNet could do
-## 1. Social Network Site
+### 1. Social Network Site
    PetNet has almost all basic functions of a typical social network app: Newsfeed, Profile, Post, Like, Comment, Follow,  Real-time Chat, Real-time Notifications.
 <p>
   <img src="assets/newsfeed.png" width="80%" />
@@ -48,7 +49,7 @@ I build a deep convolutional neural network using Tensorflow.
 </p>
 
 
-## 2. Function for recording memories of your cat
+### 2. Function for recording memories of your cat
    Petnet allows user to create multiples cat accounts, each for one of their cat. A cat profile has basic information such as: name, description, face images, fullbody images. These 2 latter fields could be used in case of wanting to use Find Lost Cat feature in the future.
    <p>
   <img src="assets/cat_profile.png" width="80%" />
@@ -60,7 +61,7 @@ I build a deep convolutional neural network using Tensorflow.
   <img src="assets/catalbum.png" width="80%" />
 </p>
 
-## 3. Find Lost Cat function
+### 3. Find Lost Cat function
 Petnet is envisioned to help cat owners reunite with their missing cats. Cats might have the tendency to wander off. If your cat might, unfornunately, go a little too far from home, or get stuck in some strange street corner, it will be helpful if someone come
    across your cat and post its images on the app as a Found Post. Now you also post a Lost Post on Petnet.
    <p>
