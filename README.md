@@ -2,9 +2,9 @@
 ## A. How PetNet is designed
 Petnet uses Django as backend, Celery as task scheduler and Redis as message broker. <br>
 Overview architecture of Petnet
-<figure>
-  <img src="assets/overview_architecture.jpg" width="80%" />
-  <figcaption> PetNet Overview Architecture</figcation>
+  <figure style="text-align: center;">
+    <img src="assets/overview_architecture.jpg" width="80%" />
+    <figcaption style="font-style: italic;"> PetNet Overview Architecture</figcation>
 </figure>
 <p>
 In this architecture, Celery workers are responsible for processing AI-related task in order not to block HTTP request - response cycle.
