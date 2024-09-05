@@ -24,32 +24,46 @@ I build a deep convolutional neural network using Tensorflow.
 ### 1. Social Network Site
    PetNet has almost all basic functions of a typical social network app: Newsfeed, Profile, Post, Like, Comment, Follow,  Real-time Chat, Real-time Notifications.
 <div>    
-  <h3> NewFeeds </h3>
+  <h5> NewFeeds </h5>
 <p>
   <img src="assets/newsfeed.png" width="80%" />
 </p>
 </div>
-<p>
-  <img src="assets/profile.png" width="80%" />
 
-</p>
-<p>
-  <img src="assets/createnewpost.png" width="80%" />
+<div>    
+  <h5> User Home Page </h5>
+  <p>
+    <img src="assets/profile.png" width="80%" />
+  </p>
+</div>
 
-</p>
-<p>
-  <img src="assets/findpostdetail.png" width="80%" />
+<div>    
+  <h5> Create New Post </h5>
+  <p>
+    <img src="assets/createnewpost.png" width="80%" />
+  </p>
+</div>
 
-</p>
-<p>
-  <img src="assets/live_notification.png" width="80%" />
+<div>    
+  <h5> View Detail of A Find-Cat-Post </h5>
+  <p>
+    <img src="assets/findpostdetail.png" width="80%" />
+  </p>
+</div>
 
-</p>
-<p>
-  <img src="assets/live_chat.png" width="80%" />
+<div>    
+  <h5> View Notifications </h5>
+  <p>
+    <img src="assets/live_notification.png" width="80%" />
+  </p>
+</div>
 
-</p>
-
+<div>    
+  <h5> Realtime Chat </h5>
+  <p>
+    <img src="assets/live_chat.png" width="80%" />
+  </p>
+</div>
 
 ### 2. Function for recording memories of your cat
    Petnet allows user to create multiples cat accounts, each for one of their cat. A cat profile has basic information such as: name, description, face images, fullbody images. These 2 latter fields could be used in case of wanting to use Find Lost Cat feature in the future.
