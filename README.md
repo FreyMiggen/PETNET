@@ -4,12 +4,6 @@ Petnet uses Django as backend, Celery as task scheduler and Redis as message bro
 Overview architecture of Petnet
   <figure style="text-align: center;">
     <img src="assets/overview_architecture.jpg" width="80%" />
-    <figcaption style="font-style: italic;"> PetNet Overview Architecture</figcation>
-</figure>
-
-<figure style="text-align: center;">
-  <img src="assets/overview_architecture.jpg" alt="A description of the image" style="width:100%; max-width:600px;">
-  <figcaption style="font-style: italic;">This is the caption for the image.</figcaption>
 </figure>
 
 <p>
@@ -29,9 +23,10 @@ I build a deep convolutional neural network using Tensorflow.
 ## B. What PetNet could do
 ### 1. Social Network Site
    PetNet has almost all basic functions of a typical social network app: Newsfeed, Profile, Post, Like, Comment, Follow,  Real-time Chat, Real-time Notifications.
+   
 <p>
+  NewFeeds
   <img src="assets/newsfeed.png" width="80%" />
-
 </p>
 <p>
   <img src="assets/profile.png" width="80%" />
