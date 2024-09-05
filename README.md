@@ -75,10 +75,10 @@ each post and compare them. Detail on how it work could be find here <a href="ht
 
 </p>
 
-    Demo of how find cat function works:
+  Demo of how find cat function works:
 
    <p>
-    [![Watch the video](assets/findcatfunction.png)](https://www.youtube.com/watch?v=8gnkECIfooQ)
+    [![Watch the video]("assets/findcatfunction.png")](https://www.youtube.com/watch?v=8gnkECIfooQ)
 </p>
 
 
