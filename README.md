@@ -6,6 +6,12 @@ Overview architecture of Petnet
     <img src="assets/overview_architecture.jpg" width="80%" />
     <figcaption style="font-style: italic;"> PetNet Overview Architecture</figcation>
 </figure>
+
+<figure style="text-align: center;">
+  <img src="assets/overview_architecture.jpg" alt="A description of the image" style="width:100%; max-width:600px;">
+  <figcaption style="font-style: italic;">This is the caption for the image.</figcaption>
+</figure>
+
 <p>
 In this architecture, Celery workers are responsible for processing AI-related task in order not to block HTTP request - response cycle.
 This is to due to the fact that such tasks usually take more time to finish. Also, Celery workers also process periodic tasks such as
