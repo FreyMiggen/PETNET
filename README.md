@@ -58,12 +58,6 @@ I build a deep convolutional neural network using Tensorflow.
   </p>
 </div>
 
-<div>    
-  <h5> Realtime Chat </h5>
-  <p>
-    <img src="assets/live_chat.png" width="80%" />
-  </p>
-</div>
 
 ### 2. Function for recording memories of your cat
    Petnet allows user to create multiples cat accounts, each for one of their cat. A cat profile has basic information such as: name, description, face images, fullbody images. These 2 latter fields could be used in case of wanting to use Find Lost Cat feature in the future.
@@ -98,3 +92,26 @@ each post and compare them. Detail on how it work could be find here <a href="ht
 All tasks that require heavy computation such as calculating embedding vectors, image processing are assigned to Celery via a message broker (Redis). 
 This architecture helps Petnet deliver better user experience by not blocking the http request-response cycle.
 
+### 4. Realtime Chat Features
+
+PetNet supports realtime chat via using websocket. A websocket is subscribed to all rooms that that user participated in, thus assuring that user always receive latest update from each chat room such as: number of unread
+message, content of lastest message, latest update time.
+
+<p>
+  <a href="https://www.youtube.com/watch?v=J9NAiFS1KhQ"> VIDEO DEMO OF REALTIME CHATAPP IN PETNET </a>
+</p>
+
+<div>    
+  <h5> Realtime Chat All Rooms </h5>
+  <p>
+    <img src="assets/realtime_chat_inbox.png" width="80%" />
+  </p>
+</div>
+
+
+<div>    
+  <h5> Realtime Chat Room </h5>
+  <p>
+    <img src="assets/realtime_chat_room.png" width="80%" />
+  </p>
+</div>

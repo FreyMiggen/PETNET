@@ -12,13 +12,52 @@
     <section class="section">
         <div class="container">
             <h1 class="title is-1 has-text-centered">Nhắn Tin</h1>
-            <div class="columns is-multiline">
-                {% for item in results %}
+            <div class="columns is-multiline" id="chat-list">
+                {% for item in room_items %}
+                <div class="column is-one-third" id="chat-list-item-{{ item.room.id }}" >
+                    <div class="card">
+                        <div class="card-image">
+                            <figure>
+                                {% if item.partner.profile.picture %}
+                                <img src="{{ item.partner.profile.picture.url }}" alt="{{ item.other_user.get_short_name }}" class="image is-128x128">
+                                {% else %}
+                                <img src="{% static 'img/avatar_placeholder.png' %}" alt="{{ item.other_user.get_short_name }}" class="image is-128x128">
+                                {% endif %}
+                            </figure>
+                        </div>
+                        <div class="card-content">
+                            <p class="title is-4"><a href="{% url 'profile' item.partner.profile.slug %}" id="partner-name-{{ item.room.id }}">{{ item.partner.get_short_name }}</a></p>
+                            <p class="title is-6" style="color:red" >Unread messages: 
+                                <span id="unread-count-{{ item.room.id }}" >{{ item.unread }}</span></p>
+    
+                            <p class="title is-6">Last updated: 
+                                <span class="last-update"  data-timestamp="{{ item.room.lastest_update_time|date:'c' }}">{{ item.room.lastest_update_time|naturaltime }}</span></p>
+
+                            <p class="title is-6"  >
+                                <span id="latest-message-{{ item.room.id }}" >
+                                    {% if item.latest_message.user == request.user %}
+                                    You: {{ item.latest_message }}
+                                    {% else %}
+                                    {{ item.partner.get_short_name }}: {{ item.latest_message }}
+                                    {% endif %}
+                                </span></p>
+                        </div>
+                        <footer class="card-footer">
+                            <a href="{% url 'chat:room' item.room.id %}" target="_blank" class="card-footer-item">Join Room</a>
+                        </footer>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+
+                <div class="columns is-multiline">
+                {% for user in other_users %}
+
                 <div class="column is-one-third">
                     <div class="card">
                         <div class="card-image">
                             <figure>
-                                {% if item.other_user.profile.picture %}
+                                {% if user.profile.picture %}
                                 <img src="{{ item.other_user.profile.picture.url }}" alt="{{ item.other_user.get_short_name }}" class="image is-128x128">
                                 {% else %}
                                 <img src="{% static 'img/avatar_placeholder.png' %}" alt="{{ item.other_user.get_short_name }}" class="image is-128x128">
@@ -26,18 +65,84 @@
                             </figure>
                         </div>
                         <div class="card-content">
-                            <p class="title is-4">{{ item.other_user.get_short_name }}</p>
-                            <p class="title is-6">Last updated: {{ item.room.lastest_update_time }}</p>
-                            <p class="title is-6" style="color:red">Unread messages: {{ item.unread }}</p>
+                            <p class="title is-4">{{ user.get_short_name }}</p>
                         </div>
                         <footer class="card-footer">
-                            <a href="{% url 'chat:room' item.other_user.id %}" target="_blank" class="card-footer-item">Join Room</a>
+                            <a href="{% url 'chat:create-room' user.id %}" class="card-footer-item">Inbox</a>
                         </footer>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+            </div>
         </div>
     </section>
+    
+    {{ request.user.id|json_script:"current-user-id" }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded',function(){
+        const chatList = document.getElementById('chat-list');
+        const currentUserId = JSON.parse(document.getElementById('current-user-id').textContent);
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log('MESSAGE RECEIVED!');
+
+            // Step 1: get the room that the message target
+            const targetedRoom = document.getElementById(`chat-list-item-${data.room}`);
+
+            // Step 2: increase unread count of that room to 1 and update last-update
+            if (targetedRoom){
+                    const unreadCount = document.getElementById(`unread-count-${data.room}`);
+                    console.log(`UNREAD COUNT: ${unreadCount}`);
+                    if (unreadCount){
+                        let currentCount = parseInt(unreadCount.textContent,10);
+                        console.log(`UNREAD COUNT: ${unreadCount}`);
+                        unreadCount.textContent = currentCount+1;
+                        console.log(`INCREASE COUNT CHECK ${currentCount+1}`);
+                        unreadCount.style.display = 'inline-block';
+                    }
+                    const lastUpdateElement = targetedRoom.querySelector('.last-update');
+                    lastUpdateElement.setAttribute('data-timestamp', data.last_update);
+                    updateHumanizeTime(lastUpdateElement);
+
+                    // Step 3: move the targettedRoom to the top of the list
+                    console.log('MOVE TO THE TOP!');
+                    chatList.insertBefore(targetedRoom, chatList.firstElementChild);
+                    console.log('MOVE TO THE TOP CHECK!');
+                    // Step 4: Update display latest message
+                    const latestMessage = document.getElementById(`latest-message-${data.room}`);
+                    if (data.user_id == currentUserId){
+                        latestMessage.textContent = `You: ${data.message}`;
+                    } else {
+                        const partnerName = document.getElementById(`partner-name-${data.room}`).textContent;
+                        latestMessage.textContent = `${partnerName}: ${data.message}`;
+                    }
+
+
+                }
+        }
+
+        // Function to calculate the relative time
+        function updateHumanizeTime(element) {
+        const timestamp = moment(element.getAttribute('data-timestamp'));
+        element.textContent = timestamp.fromNow();
+          }
+
+            // Update all humanize times initially
+        document.querySelectorAll('.last-update').forEach(updateHumanizeTime);
+
+        // Update all humanize times every minute
+        setInterval(() => {
+        document.querySelectorAll('.last-update').forEach(updateHumanizeTime);
+        }, 60000);
+
+
+    })
+</script>
 </body>
 </html>

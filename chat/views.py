@@ -1,13 +1,16 @@
 
 # Create your views here.
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404,redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .models import ChatMessage,ChatRoom
 from django.http import JsonResponse
 from django.db.models import Q
 from django.views.decorators.http import require_GET
+from django.http import HttpResponseForbidden
+from .helper import room_owner_permission
 User = get_user_model()
+
 
 def CountMessages(request):
     count_messages = 0
@@ -32,115 +35,135 @@ def CountMessages(request):
     return {'count_messages':count_messages}
 
 @login_required
-def chat_room(request, user_id):
-    user2 = get_object_or_404(User, id=user_id)
-    current_user = request.user
-    other_user = get_object_or_404(User,id=user_id)
+def createChatRoom(request,user_id):
 
-    if user_id < current_user.id:
+    user = request.user
+    current_partner = get_object_or_404(User,id=user_id)
 
-        chat_room,created = ChatRoom.objects.get_or_create(user1=other_user,user2=current_user)
+    # GET CURRENT ROOM
+    # if no room exist => create one
+    created = False
+    if user_id < user.id:
+        current_room,created = ChatRoom.objects.get_or_create(user1=current_partner,user2=user)
     else:
-        chat_room, created = ChatRoom.objects.get_or_create(user2=other_user,user1=current_user)
-    # if the chat room has already existed, load 20 most recent messages
-    if not created:
-        messages = ChatMessage.objects.filter(room=chat_room)
-        messages = messages.order_by('-timestamp')[:50]
-        # take the message that is the most far in history
-        # messages is a list of message from latest -> far in history
-        if len(messages)>0:
-            last_message_id = messages[len(messages)-1].id
-        else:
-            messages = list()
-            last_message_id=None
-            
-    else:
-        chat_room.user1_last_visit = chat_room.created_at
-        chat_room.user2_last_visit = chat_room.created_at
-        chat_room.lastest_update_time = chat_room.created_at
-        chat_room.save()
-        messages = list()
-        last_message_id = None
+        current_room,created = ChatRoom.objects.get_or_create(user1=user,user2=current_partner)
 
-    # GET A LIST OF ALL USERS THAT THE REQUEST USER HAVE CONNECTED TO
-    all_chat_rooms = ChatRoom.objects.filter(
-            Q(user1=current_user) | Q(user2=current_user)
-    )
+    if created:
+        current_room.lastest_update_time = current_room.created_at
+        current_room.user1_last_visit = current_room.created_at
+        current_room.user2_last_visit = current_room.created_at
+        current_room.save()
+   
 
-    other_users = list()
-    for room in all_chat_rooms:
-        if room.user1 == current_user:
-            other_users.append(room.user2)
-        else:
-            other_users.append(room.user1)
-
-    return render(request, 'room_test.html', {
-        'user2': user2,
-        'messages':messages,
-        'last_message_id':last_message_id,
-        'other_users':other_users,
-        'requesting_profile':current_user.profile,
-    })
-
-
-def get_messages(request, user_id):
-    current_user = request.user
-    other_user = get_object_or_404(User,id=user_id)
-    if user_id < current_user.id:
-
-        chat_room = ChatRoom.objects.get(user1=other_user,user2=current_user)
-    else:
-        chat_room = ChatRoom.objects.get(user2=other_user,user1=current_user)
-    
-
-    before_id = request.GET.get('before_id')
-    messages = ChatMessage.objects.filter(room=chat_room)
-    if before_id:
-        messages = messages.filter(id__lt=before_id)
-    messages = messages.order_by('-timestamp')[:50]
-    
-    return JsonResponse({
-        'messages': [
-            {
-                'id': msg.id,
-                'content': msg.content,
-                'user_id': msg.user.id,
-                'timestamp': msg.timestamp.isoformat()
-            } for msg in reversed(messages)
-        ]
-    })
+    return redirect('chat:room',room_id=current_room.id)
 
 @login_required
-def open_inbox(request):
+@room_owner_permission
+def chat_room(request, room_id):
+    user = request.user
+    current_room = get_object_or_404(ChatRoom,id=room_id)
+    current_partner = current_room.get_partner(user)
+    # when a user visit a room, set the last_time_visit to now
+    # this will automatically set unread_count to zero (hope so :))
+    current_room.update_last_visit(user)
 
-    ## open the 
-    current_user = request.user
+   
 
-    all_chat_rooms = ChatRoom.objects.filter(
-            Q(user1=current_user) | Q(user2=current_user)
+    # return a list of all rooms that the user in
+    rooms = ChatRoom.objects.filter(
+        Q(user1=user) | Q(user2=user)
     ).order_by('-lastest_update_time')
-
-    other_users = list()
-    for room in all_chat_rooms:
-        if room.user1 == current_user:
-            other_users.append(room.user2)
-        else:
-            other_users.append(room.user1)
-
-    # get the unread_message
-    unread_counts=[]
-    for room in all_chat_rooms:
-        if current_user == room.user1:
+    unread_counts = list()
+    for room in rooms:
+        if user == room.user1:
             unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user1_last_visit,room.lastest_update_time)).count()
             unread_counts.append(unread_message)
         else:
             unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user2_last_visit,room.lastest_update_time)).count()
             unread_counts.append(unread_message)
 
-    # get the chat room that is most recent active
-    results =[{'room':room,'other_user':other_user,'unread':unread} for (room,other_user,unread) in zip(all_chat_rooms,other_users,unread_counts)]
+    messages = current_room.room_messages.all().order_by('-timestamp')
+    has_message = False
+    if len(messages)>20:
+        has_message = True
+
+    messages = messages[:20]
+    # take the message that is the most far in history
+    # messages is a list of message from latest -> far in history
     
-    return render(request,'inbox.html',{'results':results})
+    
+    if len(messages)>0:
+        last_message_id = messages[len(messages)-1].id
+    else:
+        # messages = list()
+        last_message_id=None
+    
+    partners = [room.get_partner(user) for room in rooms]
+
+    room_items = [{'room':room,'partner':partner,'unread':unread} for (room,partner,unread) in zip(rooms,partners,unread_counts)]
+
+
+    return render(request,'room.html',{'room_items':room_items,'current_room':current_room,
+                                            'current_partner':current_partner,
+                                            'messages':messages,
+                                            'last_message_id':last_message_id,
+                                            'has_message':has_message})
+
+
+
+def get_messages(request, room_id):
+    chat_room = get_object_or_404(ChatRoom,id=room_id)
+    if request.user.is_authenticated and request.user in [chat_room.user1,chat_room.user2]:
+        before_id = request.GET.get('before_id')
+        messages = ChatMessage.objects.filter(room=chat_room)
+        if before_id:
+            messages = messages.filter(id__lt=before_id)
+
+        has_message = False
+        if len(messages) > 20:
+            has_message = True
+    
+        messages = messages.order_by('-timestamp')[:20]
+
+        return JsonResponse({
+            'messages': [
+                {
+                    'id': msg.id,
+                    'content': msg.content,
+                    'user_id': msg.user.id,
+                    'timestamp': msg.timestamp.isoformat()
+                } for msg in reversed(messages)
+            ],
+            'has_message':has_message
+        })
+    else:
+        return JsonResponse({
+        'success': False
+        })
+
+@login_required
+def open_inbox(request):
+
+    current_user = request.user
+    rooms = ChatRoom.objects.filter(
+        Q(user1=current_user) | Q(user2=current_user)
+    ).order_by('-lastest_update_time')
+    partners = [room.get_partner(current_user) for room in rooms]
+	
+    unread_counts = list()
+    for room in rooms:
+        if current_user == room.user1:
+            unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user1_last_visit,room.lastest_update_time)).count()
+            unread_counts.append(unread_message)
+        else:
+            unread_message = ChatMessage.objects.filter(room=room).filter(timestamp__range=(room.user2_last_visit,room.lastest_update_time)).count()
+            unread_counts.append(unread_message)
+    
+    room_items = [{'room':room,'partner':partner,'unread':unread,'latest_message':room.get_latest_message()} 
+                  for (room,partner,unread) in zip(rooms,partners,unread_counts)]
+    
+    return render(request,'inbox.html',{'room_items':room_items})
+    
 
 
 @login_required

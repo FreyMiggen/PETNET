@@ -36,9 +36,6 @@ class ChatRoom(models.Model):
             # Ensure user1's id is always less than user2's id for uniqueness
             self.user1, self.user2 = self.user2, self.user1
         super().save(*args, **kwargs)
-
-    def __str__(self):
-       return f"Chat between {self.user1.get_short_name()} and {self.user2.get_short_name()}"
    
     def update_last_visit(self, user):
         now = timezone.now()
@@ -48,27 +45,20 @@ class ChatRoom(models.Model):
             self.user2_last_visit = now
         self.save()
 
-    # def get_unread_count(self, user):
-    #     if user == self.user1:
-    #         last_visit = self.user1_last_visit
-    #         other_user = self.user2
-    #     elif user == self.user2:
-    #         last_visit = self.user2_last_visit
-    #         other_user = self.user1
-    #     else:
-    #         return 0
-        
-    #     if last_visit is None:
-    #         # If the user has never visited, all messages are unread
-    #         return self.chatmessage_set.filter(user=other_user).count()
-        
-    #     return self.chatmessage_set.filter(
-    #         user=other_user,
-    #         timestamp__gt=last_visit
-    #     ).count()
+    def get_partner(self,user):
+        if user == self.user1:
+            return self.user2
+        else:
+            return self.user1
+    def get_latest_message(self):
+        message = self.room_messages.latest('timestamp')
+        return message
+    def __str__(self):
+        return f"Chat between {self.user1.get_short_name()} and {self.user2.get_short_name()}"
+
 
 class ChatMessage(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE,related_name='room_messages')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -77,13 +67,6 @@ class ChatMessage(models.Model):
         return self.content
 
    
-from django.utils import timezone
-@receiver(post_save,sender=ChatMessage)
-def update_lastest_time(sender,instance,**kwargs):
-    # message= instance
-    room = instance.room
-    room.lastest_update_time = timezone.now()
-    room.save()
 
 
 

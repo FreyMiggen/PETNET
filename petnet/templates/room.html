@@ -1,35 +1,388 @@
+{% load static %}
+{% load humanize %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Chat with {{ user2.get_short_name }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid #dbdbdb;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+            border-bottom: 1px solid #dbdbdb;
+            padding-bottom: 10px;
+        }
+        .chat-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .chat-list-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #dbdbdb;
+        }
+
+
+        .chat-list-item.active-chat {
+            background-color: #e6f2ff; /* Light blue background */
+        }
+
+        .chat-list-item a {
+            text-decoration: none;
+            color: #333; /* Dark gray for normal text */
+        }
+
+        .chat-list-item a.active-link {
+            color: #0066cc; /* Bright blue for active chat */
+            font-weight: bold;
+        }
+        .chat-list-item:hover {
+            background-color: #f0f0f0;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #dbdbdb;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .chat-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .chat-item-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-figure {
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .chat-name {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .message-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: #fafafa;
+        }
+        .message {
+            position: relative;
+            max-width: 60%;
+            margin-bottom: 10px;
+            padding: 12px 16px;
+            border-radius: 22px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message-content {
+            margin-bottom: 15px;
+            word-wrap: break-word;
+        }
+
+        /* Hide the timestamp by default */
+        .message-timestamp {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.8rem;
+            color: grey;
+            display: none; /* Hide the timestamp initially */
+        }
+
+        /* Show the timestamp when the message is hovered over */
+        .message:hover .message-timestamp {
+            display: block; /* Show the timestamp on hover */
+        }
+        .message.sent {
+            align-self: flex-end;
+            background-color: #dcf8c6;
+        }
+        .message.received {
+            align-self: flex-start;
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+        }
+        .message-input {
+            padding: 15px;
+            border-top: 1px solid #dbdbdb;
+            display: flex;
+            align-items: center;
+        }
+
+
+        #chat-message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dbdbdb;
+            border-radius: 22px;
+            margin-right: 10px;
+            outline: none;
+        }
+        #chat-message-submit {
+            padding: 10px 20px;
+            background-color: #3897f0;
+            color: white;
+            border: none;
+            border-radius: 22px;
+            cursor: pointer;
+        }
+        #chat-message-submit:hover {
+            background-color: #2878c7;
+        }
+        .load-more {
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #0095f6;
+            font-size: 14px;
+        }
+
+        /* Unread count badge */
+        .unread-count {
+            font-size: 0.8em;
+            background-color: #ff3860;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Hide unread count when it's zero */
+        .unread-count[data-user-id="0"] {
+            display: none;
+        }
+        .profile-picture {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .profile-picture-small{
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+
+    }
+
+    </style>
 </head>
 <body>
-    <h1>Chat with {{ user2.get_short_name }}</h1>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ user2.id|json_script:"user2-id" }}
+    <div class="chat-container">
+        <div class="sidebar">
+            <h2>PetNet-Chat</h2>
+            <ul class="chat-list" id="chat-list">
+                {% for room_item in room_items %}
+                <!-- Example chat list items -->
+                <li class="chat-list-item {% if current_room.id == room_item.room.id %}active-chat{% endif %}" id="chat-list-item-{{ room_item.room.id }}">
+                    <a href="{% url 'chat:room' room_item.room.id %}" class="chat-item-link">
+                        <div class="chat-item-content">
+                            <figure class="chat-figure">
+                                {% if room_item.partner.profile.picture %}
+                                <img src="{{ room_item.partner.profile.picture.url }}" class="profile-picture-small" alt="Avatar image">
+                                {% else %}
+                                <img src="{% static 'img/avatar_placeholder.png' %}" class="profile-picture-small" alt="Default post image">
+                                {% endif %}
+                            </figure>
+                            <span class="chat-name">{{ room_item.partner.get_short_name }}</span>
+                            {% if room_item.room.id == current_room.id %}
+                            <span class="unread-count" data-user-id="{{ room_item.room.id }}" style="display: none;">0</span>
+                            {% else %}
+                                {% if room_item.unread > 0 %}
+                                <span class="unread-count" data-user-id="{{ room_item.room.id }}">{{ room_item.unread }}</span>
+                                {% else %}
+                                <span class="unread-count" data-user-id="{{ room_item.room.id }}" style="display: none;">0</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+                <!-- Add more chat partners here -->
+            </ul>
+        </div>
+        <div class="chat-area">
+            <div class="chat-header">
+                <figure>
+                    <a href="{% url 'profile' current_partner.profile.slug %}">
+                        {% if current_partner.profile.picture %}
+                        <img src="{{ current_partner.profile.picture.url }}" class="profile-picture" alt="Avatar image">
+                        {% else %}
+                        <img src="{% static 'img/avatar_placeholder.png' %}" class="profile-picture" alt="Default post image">
+                    {% endif %}
+                    </a>
+                </figure>
+                <a href = "{% url 'profile' current_partner.profile.slug %}">
+                    {{ current_partner.get_short_name }}
+                </a>
+            </div>
+            {% if has_message %}
+            <div id="load-more" class="load-more">Load more messages</div>
+            {% endif %}
+            
+            <div class="message-list" id="chat-log">
+                
+                {% for message in messages %}
+                <div class="message {% if message.user_id == request.user.id %}sent{% else %}received{% endif %}">
+                    <div class="message-content">{{ message.content }}</div> 
+                    <span class="message-timestamp">{{ message.timestamp|naturaltime }} </span>
+                </div>
+                {% endfor %}
+                
+            </div>
+            
+            <div class="message-input">
+                <input type="text" id="chat-message-input" placeholder="Message...">
+                <button id="chat-message-submit">Send</button>
+            </div>
+        </div>
+    </div>
+
+    {{ current_partner.id|json_script:"current-partner-id" }}
+    {{ current_room.id|json_script:"room-id" }}
+    {{ request.user.id|json_script:"current-user-id" }}
+    {{ last_message_id|json_script:"last-message-id" }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
-        const otherUserId = JSON.parse(document.getElementById('user2-id').textContent);
+        const currentPartnerId = JSON.parse(document.getElementById('current-partner-id').textContent);
+        
+        let lastMessageId = JSON.parse(document.getElementById('last-message-id').textContent);
+        const currentRoomId = JSON.parse(document.getElementById('room-id').textContent);
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+        const chatList = document.getElementById('chat-list');
+
+        const currentUserId = JSON.parse(document.getElementById('current-user-id').textContent);
+
 
         const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + otherUserId
-            + '/'
+            'ws://' + window.location.host + '/ws/chat/'
         );
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.username + ': ' + data.message + '\n');
+            console.log('MESSAGE RECEIVED!');
+
+            // if current room is the room that the message targets
+            // move that chat-list-item to the top
+            if (data.room == currentRoomId){
+                console.log(`ROOM TARGETED ${data.room}`);
+                appendMessage(data.message, data.user_id,data.last_update);
+                console.log(`ROOM ACTIVE RECEIVE MESSAGE: ${data.room}`);
+                const targetedRoom = document.getElementById(`chat-list-item-${data.room}`);
+                chatList.insertBefore(targetedRoom, chatList.firstElementChild);
+                console.log(`ROOM ACTIVE RECEIVE MESSAGE CHECK: ${data.room}`);
+
+            }
+            // if not, update the unread count in the room that the message targets and
+            // move that chat-list-item to the top
+
+            else {
+                const targetedRoom = document.getElementById(`chat-list-item-${data.room}`);
+                console.log(`ROOM NOT ACTIVE BUT RECEIVE MESSAGE: ${data.room}`);
+                if (targetedRoom){
+                    const unreadCount = targetedRoom.querySelector('.unread-count');
+                    if (unreadCount){
+                        let currentCount = parseInt(unreadCount.textContent,10);
+                        unreadCount.textContent = currentCount+1;
+                        unreadCount.style.display = 'inline-block';
+                    }
+                    console.log('MOVE TO THE TOP!');
+                    chatList.insertBefore(targetedRoom, chatList.firstElementChild);
+                    console.log('MOVE TO THE TOP CHECK!');
+
+                }
+            }
+            
         };
+
+        chatSocket.onerror = function(error){
+            console.error("WebSocket error observed:", error);
+        }
 
         chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
         };
+        
 
-        document.querySelector('#chat-message-input').focus();
+            // Reset unread count when entering a chat room
+
+        function appendMessage(message, userId,timestamp) {
+            console.log('APPEND MESSAGE!')
+            const messageList = document.querySelector('#chat-log');
+            const messageDiv = document.createElement('div');
+       
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = message;
+
+            const timestampSpan = document.createElement('span');
+            timestampSpan.className = 'message-timestamp';
+            timestampSpan.textContent = moment(timestamp).fromNow(); // You'll need to implement the naturalTime function
+
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timestampSpan);
+            messageDiv.classList.add('message');
+            if (userId === currentUserId) {
+                messageDiv.classList.add('sent');
+            } else {
+                messageDiv.classList.add('received');
+            }
+            messageList.insertBefore(messageDiv, messageList.firstChild);
+        }
+
         document.querySelector('#chat-message-input').onkeyup = function(e) {
             if (e.keyCode === 13) {  // enter, return
                 document.querySelector('#chat-message-submit').click();
@@ -39,11 +392,85 @@
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
+            // SEND MESSAGE
             chatSocket.send(JSON.stringify({
-                'message': message
+                'message': message,
+                'room':currentRoomId,
             }));
             messageInputDom.value = '';
         };
+
+        // Load more messages when clicking "Load more"
+        var hasMessage = true;
+        document.getElementById('load-more').onclick = function() {
+            console.log(`Last Message Id: ${lastMessageId}`);
+            if (hasMessage) {
+                loadMessages(lastMessageId);
+            } else {
+                console.log('RUN OUT OF MESSAGES!');
+            }
+            
+        };
+
+        function loadMessages(before_id = null) {
+            fetch(`/chat/room/messages/${currentRoomId}/?before_id=${before_id || ''}`)
+                .then(response => response.json())
+                .then(data => {
+                    const messages = data.messages.reverse();
+                    const chatLog = document.getElementById('chat-log');
+                    hasMessage = data.has_message;
+                    
+                    messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${msg.user_id === currentUserId ? 'sent' : 'received'}`;
+
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'message-content';
+                        contentDiv.textContent = msg.content;
+
+                        const timestampSpan = document.createElement('span');
+                        timestampSpan.className = 'message-timestamp';
+                        timestampSpan.textContent = moment(msg.timestamp).fromNow(); // Use moment lib from JS
+
+                        messageDiv.appendChild(contentDiv);
+                        messageDiv.appendChild(timestampSpan);
+
+                        chatLog.appendChild(messageDiv);
+                        lastMessageId = msg.id;
+                        // const messageDiv = document.createElement('div');
+                        // messageDiv.textContent = msg.content;
+                        // messageDiv.classList.add('message');
+                        // messageDiv.classList.add(msg.user_id === currentUserId ? 'sent' : 'received');
+                        // chatLog.appendChild(messageDiv);
+                        // lastMessageId = msg.id;
+                    });
+
+                    // If no more messages => hide load more message
+                    if (!hasMessage){
+                        console.log('HIDE LOAD MORE!');
+                        const loadMore = document.getElementById('load-more');
+                        loadMore.style.display = 'none';
+
+                    }
+                    
+                });
+        }
+
+        function updateUnreadCount(roomId, count) {
+            const unreadElement = document.querySelector(`.unread-count[user-id="${roomId}"]`);
+            if (unreadElement) {
+                unreadElement.textContent = count;
+                unreadElement.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        // Function to set unread count to zero
+        function updateUnreadCountToZero(roomId) {
+            updateUnreadCount(roomId, 0);
+        }
+
+
+    })
     </script>
 </body>
 </html>

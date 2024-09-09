@@ -229,7 +229,39 @@
       }
       
     }
+  };
+
+  const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/'
+        );
+
+  chatSocket.onmessage = function(e){
+    const data = JSON.parse(e.data);
+    console.log('UPDATE MESSAGE COUNT!');
+    updateChatNoti(1);
+    
   }
+
+
+  function updateChatNoti(num=1){
+    var badge = document.getElementById('message-count');
+
+    if (badge) {
+      // Parse the current count as an integer
+      var currentCount = parseInt(badge.textContent, 10) || 0;
+
+      var newCount = currentCount + num;
+
+      badge.textContent = newCount;
+      if (newCount>0){
+        badge.style.display = 'inline'; // Ensure the badge is visible
+
+      } else {
+        badge.style.display = 'none';
+      }
+      
+    }
+  };
 
 
 
